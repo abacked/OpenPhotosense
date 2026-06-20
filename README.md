@@ -10,6 +10,7 @@ OpenPhotosense is an open-source web application that screens uploaded videos fo
 - Risk levels, a 0–100 explainable score, and event timestamps
 - Flash-frequency windows that flag more than three transitions per second
 - Separate red-flash and high-contrast warnings
+- Auto-fix exports with smoothing, targeted dimming, or risky-interval removal
 - Responsive light/dark interface
 - FastAPI job API and modular OpenCV analysis engine
 - Docker Compose and GitHub Actions setup
@@ -93,4 +94,3 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing changes. The planned pa
 ## License
 
 Apache License 2.0. See [LICENSE](LICENSE).
-

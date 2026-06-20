@@ -9,6 +9,7 @@ import type { AnalysisReport } from "@/lib/types";
 
 export default function Home() {
   const [jobId, setJobId] = useState<string>();
+  const [completedScanId, setCompletedScanId] = useState<string>();
   const [filename, setFilename] = useState("");
   const [progress, setProgress] = useState(0);
   const [report, setReport] = useState<AnalysisReport>();
@@ -23,6 +24,7 @@ export default function Home() {
         setProgress(job.progress);
         if (job.status === "completed" && job.report) {
           setReport(job.report);
+          setCompletedScanId(job.job_id);
           setJobId(undefined);
         } else if (job.status === "failed") {
           setError(job.error ?? "The scan could not be completed.");
@@ -37,7 +39,7 @@ export default function Home() {
   }, [jobId]);
 
   async function upload(file: File) {
-    setError(""); setReport(undefined); setFilename(file.name); setProgress(1); setUploading(true);
+    setError(""); setReport(undefined); setCompletedScanId(undefined); setFilename(file.name); setProgress(1); setUploading(true);
     try { setJobId(await createScan(file)); }
     catch (reason) { setError(reason instanceof Error ? reason.message : "Upload failed."); setProgress(0); }
     finally { setUploading(false); }
@@ -61,7 +63,7 @@ export default function Home() {
           <UploadZone onFile={upload} disabled={busy} />
           {busy && <div className="mt-5 rounded-2xl bg-white p-5 shadow-soft dark:bg-white/[.05]" aria-live="polite"><div className="mb-3 flex justify-between gap-3 text-sm"><span className="truncate font-semibold">Scanning {filename}</span><span>{progress}%</span></div><div className="h-2 overflow-hidden rounded-full bg-black/5 dark:bg-white/10"><div className="h-full rounded-full bg-signal transition-all duration-500" style={{ width: `${progress}%` }} /></div><p className="mt-3 text-xs opacity-50">You can keep this tab open while frames are analyzed.</p></div>}
           {error && <p role="alert" className="mt-5 rounded-2xl border border-red-300 bg-red-50 p-4 text-sm text-red-800">{error}</p>}
-          {report && <Results report={report} />}
+          {report && completedScanId && <Results report={report} scanId={completedScanId} />}
         </section>
         <section className="mt-24 grid gap-8 border-t border-black/10 pt-10 dark:border-white/10 sm:grid-cols-3">
           {[['01', 'Frame analysis', 'Samples luminance and contrast changes across the complete video.'], ['02', 'Frequency windows', 'Highlights intervals that exceed three flashes per second.'], ['03', 'Reviewable report', 'Lists exact timestamps and red-flash warnings for editorial review.']].map(([n, title, copy]) => <div key={n}><span className="font-mono text-xs text-signal">{n}</span><h2 className="mt-3 font-display font-bold">{title}</h2><p className="mt-2 text-sm leading-6 opacity-55">{copy}</p></div>)}

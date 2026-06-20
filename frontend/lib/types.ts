@@ -31,3 +31,14 @@ export interface ScanJob {
   error: string | null;
 }
 
+export type FixStrategy = "smooth" | "dim" | "remove";
+
+export interface FixJob {
+  fix_id: string;
+  scan_id: string;
+  status: "queued" | "processing" | "completed" | "failed";
+  progress: number;
+  strategy: FixStrategy;
+  download_url: string | null;
+  error: string | null;
+}
