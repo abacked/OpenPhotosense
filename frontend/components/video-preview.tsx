@@ -9,14 +9,19 @@ export function VideoPreview({
   src,
   events,
   duration,
+  title = "Review flagged moments",
+  description = "Click or drag anywhere on the timeline to scrub through the video.",
 }: {
   src: string;
   events: FlashEvent[];
   duration: number;
+  title?: string;
+  description?: string;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [currentTime, setCurrentTime] = useState(0);
-  const safeDuration = Math.max(duration, 0.01);
+  const [mediaDuration, setMediaDuration] = useState(duration);
+  const safeDuration = Math.max(mediaDuration, 0.01);
   const markers = useMemo(
     () => events.map((event, index) => ({ event, index, left: Math.min(event.timestamp_seconds / safeDuration * 100, 100) })),
     [events, safeDuration],
@@ -34,8 +39,8 @@ export function VideoPreview({
     <div className="rounded-[2rem] bg-white p-5 shadow-soft dark:bg-white/[.05] sm:p-7">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h3 className="font-display text-lg font-bold">Review flagged moments</h3>
-          <p className="mt-1 text-sm opacity-55">Click or drag anywhere on the timeline to scrub through the video.</p>
+          <h3 className="font-display text-lg font-bold">{title}</h3>
+          <p className="mt-1 text-sm opacity-55">{description}</p>
         </div>
         <div className="flex items-center gap-4 text-xs font-semibold">
           <span className="flex items-center gap-1.5"><i className="size-2 rounded-full bg-amber-400" /> Flash</span>
@@ -48,6 +53,7 @@ export function VideoPreview({
         src={src}
         controls
         preload="metadata"
+        onLoadedMetadata={(event) => { if (Number.isFinite(event.currentTarget.duration)) setMediaDuration(event.currentTarget.duration); }}
         onTimeUpdate={(event) => setCurrentTime(event.currentTarget.currentTime)}
         className="mt-5 aspect-video w-full rounded-2xl bg-black object-contain"
       >

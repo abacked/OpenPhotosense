@@ -6,12 +6,17 @@ type FrameCallbackVideo = CapturableVideo & {
   cancelVideoFrameCallback?: (handle: number) => void;
 };
 
-export async function generateSaferVideo(file: File, report: AnalysisReport, strategy: FixStrategy, onProgress: (value: number) => void): Promise<Blob> {
+export async function generateSaferVideo(file: File, report: AnalysisReport, strategy: FixStrategy, onProgress: (value: number) => void, signal?: AbortSignal): Promise<Blob> {
+  signal?.throwIfAborted();
   if (!window.MediaRecorder) throw new Error("This browser cannot record a safer version. Try Chrome, Edge, or Firefox.");
   const sourceUrl = URL.createObjectURL(file);
   const video = document.createElement("video") as FrameCallbackVideo;
   video.src = sourceUrl; video.preload = "auto"; video.playsInline = true;
   await once(video, "loadedmetadata");
+  if (signal?.aborted) {
+    video.removeAttribute("src"); video.load(); URL.revokeObjectURL(sourceUrl);
+    throw new DOMException("Generation cancelled", "AbortError");
+  }
   const AudioContextClass = window.AudioContext;
   const audioContext = new AudioContextClass();
   const audioSource = audioContext.createMediaElementSource(video);
@@ -39,6 +44,7 @@ export async function generateSaferVideo(file: File, report: AnalysisReport, str
     else animation = requestAnimationFrame(draw);
   };
   const draw = () => {
+    if (signal?.aborted) return;
     const active = risky.find((range) => video.currentTime >= range.start && video.currentTime <= range.end);
     if (strategy === "remove" && active) { video.currentTime = Math.min(active.end + 0.01, video.duration); scheduleDraw(); return; }
     context.save();
@@ -51,11 +57,11 @@ export async function generateSaferVideo(file: File, report: AnalysisReport, str
     if (!video.ended) scheduleDraw();
   };
   try {
-    await audioContext.resume(); recorder.start(1000); scheduleDraw(); await video.play(); await once(video, "ended");
+    await audioContext.resume(); recorder.start(1000); scheduleDraw(); await video.play(); await onceOrAbort(video, "ended", signal);
     cancelDraw(video, animation, videoFrameCallback); recorder.stop(); await stopped; onProgress(100);
     return new Blob(chunks, { type: recorder.mimeType || mimeType });
   } finally {
-    cancelDraw(video, animation, videoFrameCallback); video.pause(); video.removeAttribute("src"); video.load(); URL.revokeObjectURL(sourceUrl); output.getTracks().forEach((track) => track.stop()); await audioContext.close();
+    cancelDraw(video, animation, videoFrameCallback); video.pause(); if (recorder.state !== "inactive") recorder.stop(); video.removeAttribute("src"); video.load(); URL.revokeObjectURL(sourceUrl); output.getTracks().forEach((track) => track.stop()); await audioContext.close();
   }
 }
 
@@ -84,3 +90,15 @@ function selectMimeType() {
 }
 
 function once(target: HTMLMediaElement, event: string) { return new Promise<void>((resolve, reject) => { const done = () => { cleanup(); resolve(); }; const failed = () => { cleanup(); reject(new Error("The browser could not process this video.")); }; const cleanup = () => { target.removeEventListener(event, done); target.removeEventListener("error", failed); }; target.addEventListener(event, done, { once: true }); target.addEventListener("error", failed, { once: true }); }); }
+
+function onceOrAbort(target: HTMLMediaElement, event: string, signal?: AbortSignal) {
+  if (!signal) return once(target, event);
+  if (signal.aborted) return Promise.reject(new DOMException("Generation cancelled", "AbortError"));
+  return new Promise<void>((resolve, reject) => {
+    const done = () => { cleanup(); resolve(); };
+    const failed = () => { cleanup(); reject(new Error("The browser could not process this video.")); };
+    const aborted = () => { cleanup(); reject(new DOMException("Generation cancelled", "AbortError")); };
+    const cleanup = () => { target.removeEventListener(event, done); target.removeEventListener("error", failed); signal.removeEventListener("abort", aborted); };
+    target.addEventListener(event, done, { once: true }); target.addEventListener("error", failed, { once: true }); signal.addEventListener("abort", aborted, { once: true });
+  });
+}
