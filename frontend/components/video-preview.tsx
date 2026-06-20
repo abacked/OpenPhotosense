@@ -22,12 +22,12 @@ export function VideoPreview({
     [events, safeDuration],
   );
 
-  function seek(seconds: number) {
+  function scrub(seconds: number) {
     const video = videoRef.current;
     if (!video) return;
-    video.currentTime = Math.max(0, Math.min(seconds, video.duration || safeDuration));
-    setCurrentTime(video.currentTime);
-    void video.play().catch(() => undefined);
+    const next = Math.max(0, Math.min(seconds, video.duration || safeDuration));
+    video.currentTime = next;
+    setCurrentTime(next);
   }
 
   return (
@@ -35,7 +35,7 @@ export function VideoPreview({
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h3 className="font-display text-lg font-bold">Review flagged moments</h3>
-          <p className="mt-1 text-sm opacity-55">Click a marker to jump directly to that transition.</p>
+          <p className="mt-1 text-sm opacity-55">Click or drag anywhere on the timeline to scrub through the video.</p>
         </div>
         <div className="flex items-center gap-4 text-xs font-semibold">
           <span className="flex items-center gap-1.5"><i className="size-2 rounded-full bg-amber-400" /> Flash</span>
@@ -64,18 +64,26 @@ export function VideoPreview({
             <span className="absolute inset-y-0 left-0 bg-signal/30" style={{ width: `${Math.min(currentTime / safeDuration * 100, 100)}%` }} />
           </div>
           {markers.map(({ event, index, left }) => (
-            <button
+            <span
               key={`${event.timestamp_seconds}-${index}`}
-              type="button"
-              onClick={() => seek(Math.max(0, event.timestamp_seconds - 0.6))}
               title={`${event.is_red_flash ? "Red flash" : "Flash"} at ${event.timestamp}`}
-              aria-label={`Jump to ${event.is_red_flash ? "red flash" : "flash"} at ${event.timestamp}`}
-              className={`absolute top-1 size-5 -translate-x-1/2 rounded-full border-2 border-white shadow-sm transition hover:scale-125 focus:outline-none focus:ring-2 focus:ring-signal ${event.is_red_flash ? "bg-red-500" : "bg-amber-400"}`}
+              aria-hidden="true"
+              className={`pointer-events-none absolute top-1 size-5 -translate-x-1/2 rounded-full border-2 border-white shadow-sm ${event.is_red_flash ? "bg-red-500" : "bg-amber-400"}`}
               style={{ left: `${left}%` }}
             />
           ))}
+          <input
+            type="range"
+            min={0}
+            max={safeDuration}
+            step={0.01}
+            value={Math.min(currentTime, safeDuration)}
+            onChange={(event) => scrub(Number(event.currentTarget.value))}
+            aria-label="Video position"
+            className="absolute inset-0 z-10 h-10 w-full cursor-ew-resize appearance-none bg-transparent [&::-moz-range-thumb]:size-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:bg-signal [&::-moz-range-thumb]:shadow-md [&::-moz-range-track]:bg-transparent [&::-webkit-slider-runnable-track]:h-10 [&::-webkit-slider-runnable-track]:bg-transparent [&::-webkit-slider-thumb]:mt-2.5 [&::-webkit-slider-thumb]:size-5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:bg-signal [&::-webkit-slider-thumb]:shadow-md"
+          />
         </div>
-        <div className="flex justify-between font-mono text-[11px] opacity-45"><span>00:00</span><span>{formatTime(safeDuration)}</span></div>
+        <div className="flex justify-between font-mono text-[11px] opacity-45"><span>{formatTime(currentTime)}</span><span>{formatTime(safeDuration)}</span></div>
       </div>
 
       {events.length === 0 && <p className="mt-3 rounded-xl bg-emerald-50 p-3 text-sm text-emerald-800">No flagged moments were found in this video.</p>}
