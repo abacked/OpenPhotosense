@@ -8,7 +8,7 @@ export function Results({ report, file, videoUrl }: { report: AnalysisReport; fi
   const frequency = Object.entries(report.flashes_per_second).filter(([, count]) => count > 0);
   return (
     <section className="animate-rise mt-8 space-y-5" aria-live="polite">
-      <div className="rounded-[2rem] bg-ink p-7 text-white shadow-soft dark:bg-white dark:text-ink sm:p-9">
+      <div className="lift-card rounded-[2rem] bg-ink p-7 text-white shadow-soft dark:bg-white dark:text-ink sm:p-9">
         <div className="flex flex-wrap items-start justify-between gap-5">
           <div><p className="text-xs font-bold uppercase tracking-[.2em] opacity-50">Analysis complete</p><h2 className="mt-2 font-display text-3xl font-bold">Accessibility report</h2></div>
           <span className={`rounded-full px-4 py-2 text-sm font-extrabold uppercase tracking-wider ${tones[report.risk_level]}`}>{report.risk_level} risk · {report.risk_score}/100</span>

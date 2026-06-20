@@ -14,3 +14,52 @@ body { margin: 0; }
 }
 .animate-rise { animation: rise .55s ease-out both; }
 
+@keyframes ambient-drift {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(28px, 18px, 0) scale(1.08); }
+}
+@keyframes ambient-drift-reverse {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1.08); }
+  50% { transform: translate3d(-24px, 22px, 0) scale(1); }
+}
+@keyframes gentle-float {
+  0%, 100% { transform: translateY(0) rotate(45deg); }
+  50% { transform: translateY(-4px) rotate(53deg); }
+}
+@keyframes scan-pass {
+  0% { transform: translateY(-140%); opacity: 0; }
+  18%, 82% { opacity: .38; }
+  100% { transform: translateY(520%); opacity: 0; }
+}
+@keyframes progress-glow {
+  0% { transform: translateX(-120%); }
+  100% { transform: translateX(260%); }
+}
+
+.ambient-orb { animation: ambient-drift 14s ease-in-out infinite; filter: blur(4px); }
+.ambient-orb-reverse { animation: ambient-drift-reverse 17s ease-in-out infinite; filter: blur(8px); }
+.logo-mark { animation: gentle-float 4s ease-in-out infinite; }
+.upload-zone { position: relative; isolation: isolate; overflow: hidden; }
+.upload-zone::after {
+  background: linear-gradient(180deg, transparent, rgba(25, 169, 116, .16), transparent);
+  content: "";
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  transform: translateY(-140%);
+  z-index: -1;
+}
+.upload-zone.is-scanning::after, .upload-zone.is-dragging::after { animation: scan-pass 3.2s ease-in-out infinite; }
+.upload-icon { transition: transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s ease; }
+.upload-zone:hover .upload-icon, .upload-zone.is-dragging .upload-icon { box-shadow: 0 14px 32px -12px rgba(25, 169, 116, .65); transform: translateY(-5px) rotate(4deg); }
+.feature-card { transition: transform .35s ease, opacity .35s ease; }
+.feature-card:hover { transform: translateY(-6px); }
+.progress-shine { overflow: hidden; position: relative; }
+.progress-shine::after { animation: progress-glow 2.4s ease-in-out infinite; background: linear-gradient(90deg, transparent, rgba(255,255,255,.6), transparent); content: ""; inset: 0; position: absolute; width: 38%; }
+.lift-card { transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease; }
+.lift-card:hover { transform: translateY(-3px); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
+}

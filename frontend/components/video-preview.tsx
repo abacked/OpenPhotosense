@@ -36,7 +36,7 @@ export function VideoPreview({
   }
 
   return (
-    <div className="rounded-[2rem] bg-white p-5 shadow-soft dark:bg-white/[.05] sm:p-7">
+    <div className="lift-card rounded-[2rem] bg-white p-5 shadow-soft dark:bg-white/[.05] sm:p-7">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h3 className="font-display text-lg font-bold">{title}</h3>
