@@ -3,7 +3,8 @@ import type { AnalysisReport, FlashEvent, RiskLevel } from "./types";
 const SAMPLE_FPS = 12;
 const BRIGHTNESS_THRESHOLD = 0.18;
 const CONTRAST_THRESHOLD = 0.24;
-const MINIMUM_EVENT_GAP = 0.08;
+const STARTUP_GUARD_SECONDS = 0.25;
+const EVENT_MERGE_WINDOW_SECONDS = 0.18;
 
 type Metrics = { brightness: number; contrast: number; redRatio: number; redDominance: number };
 
@@ -14,6 +15,7 @@ export async function scanVideoInBrowser(file: File, onProgress: (progress: numb
   video.preload = "auto";
   video.src = url;
   await once(video, "loadedmetadata");
+  if (video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) await once(video, "loadeddata");
   if (!Number.isFinite(video.duration) || video.duration <= 0) throw new Error("This browser could not read the video duration.");
 
   const canvas = document.createElement("canvas");
@@ -25,8 +27,6 @@ export async function scanVideoInBrowser(file: File, onProgress: (progress: numb
   const totalSamples = Math.max(1, Math.ceil(duration * SAMPLE_FPS));
   const events: FlashEvent[] = [];
   let previous: Metrics | undefined;
-  let lastEventTime = -MINIMUM_EVENT_GAP;
-  let highContrastEvents = 0;
 
   try {
     for (let index = 0; index < totalSamples; index += 1) {
@@ -40,13 +40,11 @@ export async function scanVideoInBrowser(file: File, onProgress: (progress: numb
         const brightnessFlag = brightnessDelta >= BRIGHTNESS_THRESHOLD;
         const contrastFlag = contrastDelta >= CONTRAST_THRESHOLD;
         const redFlag = brightnessFlag && metrics.redRatio >= 0.1 && metrics.redDominance >= 1.5;
-        if (contrastFlag) highContrastEvents += 1;
-        if ((brightnessFlag || contrastFlag || redFlag) && timestamp - lastEventTime >= MINIMUM_EVENT_GAP) {
-          events.push({
+        if ((brightnessFlag || contrastFlag || redFlag) && timestamp >= STARTUP_GUARD_SECONDS) {
+          mergeEvent(events, {
             timestamp_seconds: round(timestamp, 3), timestamp: formatTimestamp(timestamp),
             brightness_delta: round(brightnessDelta, 4), contrast_delta: round(contrastDelta, 4), is_red_flash: redFlag,
           });
-          lastEventTime = timestamp;
         }
       }
       previous = metrics;
@@ -59,6 +57,7 @@ export async function scanVideoInBrowser(file: File, onProgress: (progress: numb
   const perSecond: Record<string, number> = {};
   for (const event of events) perSecond[formatTimestamp(Math.floor(event.timestamp_seconds))] = (perSecond[formatTimestamp(Math.floor(event.timestamp_seconds))] ?? 0) + 1;
   const counts = Object.values(perSecond);
+  const highContrastEvents = events.filter((event) => event.contrast_delta >= CONTRAST_THRESHOLD).length;
   const unsafeSeconds = counts.filter((count) => count > 3).length;
   const redCount = events.filter((event) => event.is_red_flash).length;
   const peak = Math.max(0, ...counts);
@@ -86,8 +85,24 @@ function measure(data: Uint8ClampedArray): Metrics {
   return { brightness, contrast: Math.sqrt(Math.max(0, sumSquares / pixels - brightness * brightness)), redRatio: redPixels / pixels, redDominance: red / Math.max(other, 0.01) };
 }
 
+function mergeEvent(events: FlashEvent[], candidate: FlashEvent) {
+  const previous = events.at(-1);
+  if (!previous || candidate.timestamp_seconds - previous.timestamp_seconds > EVENT_MERGE_WINDOW_SECONDS) {
+    events.push(candidate);
+    return;
+  }
+  const red = previous.is_red_flash || candidate.is_red_flash;
+  if (candidate.contrast_delta > previous.contrast_delta) {
+    events[events.length - 1] = { ...candidate, is_red_flash: red };
+  } else {
+    previous.is_red_flash = red;
+    previous.brightness_delta = Math.max(previous.brightness_delta, candidate.brightness_delta);
+    previous.contrast_delta = Math.max(previous.contrast_delta, candidate.contrast_delta);
+  }
+}
+
 function seek(video: HTMLVideoElement, time: number) { if (Math.abs(video.currentTime - time) < 0.001 && video.readyState >= 2) return Promise.resolve(); video.currentTime = time; return once(video, "seeked"); }
 function once(target: HTMLMediaElement, event: string) { return new Promise<void>((resolve, reject) => { const done = () => { cleanup(); resolve(); }; const failed = () => { cleanup(); reject(new Error("The browser could not decode this video.")); }; const cleanup = () => { target.removeEventListener(event, done); target.removeEventListener("error", failed); }; target.addEventListener(event, done, { once: true }); target.addEventListener("error", failed, { once: true }); }); }
 function breathe() { return new Promise<void>((resolve) => requestAnimationFrame(() => resolve())); }
 function round(value: number, places: number) { const scale = 10 ** places; return Math.round(value * scale) / scale; }
-function formatTimestamp(seconds: number) { const whole = Math.max(0, Math.floor(seconds)); const hours = Math.floor(whole / 3600); const minutes = Math.floor((whole % 3600) / 60); const secs = whole % 60; return [hours, minutes, secs].map((part) => String(part).padStart(2, "0")).join(":"); }
+function formatTimestamp(seconds: number) { const safe = Math.max(0, seconds); const whole = Math.floor(safe); const hours = Math.floor(whole / 3600); const minutes = Math.floor((whole % 3600) / 60); const secs = whole % 60; const milliseconds = Math.floor((safe - whole) * 1000); return `${[hours, minutes, secs].map((part) => String(part).padStart(2, "0")).join(":")}.${String(milliseconds).padStart(3, "0")}`; }
