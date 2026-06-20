@@ -5,7 +5,7 @@ import { generateSaferVideo } from "@/lib/browser-fixer";
 import type { AnalysisReport, FixStrategy } from "@/lib/types";
 
 const options: Array<{ id: FixStrategy; title: string; copy: string; note: string }> = [
-  { id: "smooth", title: "Smooth rapid changes", copy: "Blends neighboring frames and reduces flicker while preserving the complete timeline.", note: "Best default" },
+  { id: "smooth", title: "Smooth rapid changes", copy: "Strongly holds the previous safe frame through flashes, then eases back without creating a hard cut.", note: "Best default" },
   { id: "dim", title: "Dim flagged moments", copy: "Darkens risky windows and reduces saturation around detected red flashes.", note: "Least editing" },
   { id: "remove", title: "Remove risky moments", copy: "Cuts short flagged intervals from the video and audio for the strongest intervention.", note: "Most protective" },
 ];

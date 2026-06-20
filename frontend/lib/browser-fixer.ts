@@ -1,11 +1,15 @@
 import type { AnalysisReport, FixStrategy } from "./types";
 
 type CapturableVideo = HTMLVideoElement & { captureStream?: () => MediaStream; mozCaptureStream?: () => MediaStream };
+type FrameCallbackVideo = CapturableVideo & {
+  requestVideoFrameCallback?: (callback: () => void) => number;
+  cancelVideoFrameCallback?: (handle: number) => void;
+};
 
 export async function generateSaferVideo(file: File, report: AnalysisReport, strategy: FixStrategy, onProgress: (value: number) => void): Promise<Blob> {
   if (!window.MediaRecorder) throw new Error("This browser cannot record a safer version. Try Chrome, Edge, or Firefox.");
   const sourceUrl = URL.createObjectURL(file);
-  const video = document.createElement("video") as CapturableVideo;
+  const video = document.createElement("video") as FrameCallbackVideo;
   video.src = sourceUrl; video.preload = "auto"; video.playsInline = true;
   await once(video, "loadedmetadata");
   const AudioContextClass = window.AudioContext;
@@ -28,24 +32,45 @@ export async function generateSaferVideo(file: File, report: AnalysisReport, str
   const stopped = new Promise<void>((resolve, reject) => { recorder.onstop = () => resolve(); recorder.onerror = () => reject(new Error("Browser video recording failed.")); });
   const risky = report.events.map((event) => ({ start: Math.max(0, event.timestamp_seconds - 0.18), end: Math.min(report.duration_seconds, event.timestamp_seconds + 0.22), red: event.is_red_flash }));
   let animation = 0;
+  let videoFrameCallback = 0;
+  let hasRenderedFrame = false;
+  const scheduleDraw = () => {
+    if (video.requestVideoFrameCallback) videoFrameCallback = video.requestVideoFrameCallback(draw);
+    else animation = requestAnimationFrame(draw);
+  };
   const draw = () => {
     const active = risky.find((range) => video.currentTime >= range.start && video.currentTime <= range.end);
-    if (strategy === "remove" && active) { video.currentTime = Math.min(active.end + 0.01, video.duration); animation = requestAnimationFrame(draw); return; }
+    if (strategy === "remove" && active) { video.currentTime = Math.min(active.end + 0.01, video.duration); scheduleDraw(); return; }
     context.save();
     if (strategy === "dim" && active) context.filter = active.red ? "brightness(55%) saturate(35%)" : "brightness(62%)";
-    if (strategy === "smooth" && active) { context.globalAlpha = 0.42; }
+    if (strategy === "smooth" && hasRenderedFrame) context.globalAlpha = smoothingAlpha(video.currentTime, report);
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
     context.restore();
+    hasRenderedFrame = true;
     onProgress(Math.min(99, Math.round(video.currentTime / Math.max(video.duration, 0.01) * 100)));
-    if (!video.ended) animation = requestAnimationFrame(draw);
+    if (!video.ended) scheduleDraw();
   };
   try {
-    await audioContext.resume(); recorder.start(1000); animation = requestAnimationFrame(draw); await video.play(); await once(video, "ended");
-    cancelAnimationFrame(animation); recorder.stop(); await stopped; onProgress(100);
+    await audioContext.resume(); recorder.start(1000); scheduleDraw(); await video.play(); await once(video, "ended");
+    cancelDraw(video, animation, videoFrameCallback); recorder.stop(); await stopped; onProgress(100);
     return new Blob(chunks, { type: recorder.mimeType || mimeType });
   } finally {
-    cancelAnimationFrame(animation); video.pause(); video.removeAttribute("src"); video.load(); URL.revokeObjectURL(sourceUrl); output.getTracks().forEach((track) => track.stop()); await audioContext.close();
+    cancelDraw(video, animation, videoFrameCallback); video.pause(); video.removeAttribute("src"); video.load(); URL.revokeObjectURL(sourceUrl); output.getTracks().forEach((track) => track.stop()); await audioContext.close();
   }
+}
+
+function smoothingAlpha(time: number, report: AnalysisReport) {
+  const closest = Math.min(...report.events.map((event) => Math.abs(time - event.timestamp_seconds)), Number.POSITIVE_INFINITY);
+  if (closest <= 0.24) return 0.04;
+  if (closest >= 0.85) return 1;
+  // Ease gradually into and out of the strong hold so the correction cannot create a new hard cut.
+  const position = (closest - 0.24) / (0.85 - 0.24);
+  return 0.04 + position * position * 0.96;
+}
+
+function cancelDraw(video: FrameCallbackVideo, animation: number, videoFrameCallback: number) {
+  if (animation) cancelAnimationFrame(animation);
+  if (videoFrameCallback && video.cancelVideoFrameCallback) video.cancelVideoFrameCallback(videoFrameCallback);
 }
 
 function selectMimeType() {
