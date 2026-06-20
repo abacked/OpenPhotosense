@@ -14,6 +14,7 @@ export function AutoFix({ file, report }: { file: File; report: AnalysisReport }
   const [strategy, setStrategy] = useState<FixStrategy>("smooth");
   const [progress, setProgress] = useState(0);
   const [downloadUrl, setDownloadUrl] = useState("");
+  const [format, setFormat] = useState<"mp4" | "webm">("mp4");
   const [error, setError] = useState("");
   const [generating, setGenerating] = useState(false);
 
@@ -22,7 +23,11 @@ export function AutoFix({ file, report }: { file: File; report: AnalysisReport }
   async function generate() {
     if (downloadUrl) URL.revokeObjectURL(downloadUrl);
     setError(""); setDownloadUrl(""); setProgress(1); setGenerating(true);
-    try { setDownloadUrl(URL.createObjectURL(await generateSaferVideo(file, report, strategy, setProgress))); }
+    try {
+      const result = await generateSaferVideo(file, report, strategy, setProgress);
+      setFormat(result.type.includes("mp4") ? "mp4" : "webm");
+      setDownloadUrl(URL.createObjectURL(result));
+    }
     catch (reason) { setError(reason instanceof Error ? reason.message : "Could not start Auto-fix."); setProgress(0); }
     finally { setGenerating(false); }
   }
@@ -38,8 +43,15 @@ export function AutoFix({ file, report }: { file: File; report: AnalysisReport }
       </div>
       {generating && <div className="mt-6" aria-live="polite"><div className="mb-2 flex justify-between text-sm font-semibold"><span>Generating safer video</span><span>{progress}%</span></div><div className="h-2 overflow-hidden rounded-full bg-black/10 dark:bg-white/10"><div className="h-full rounded-full bg-signal transition-all" style={{ width: `${progress}%` }} /></div></div>}
       {error && <p role="alert" className="mt-5 rounded-xl bg-red-50 p-4 text-sm text-red-800">{error}</p>}
+      {downloadUrl && (
+        <div className="mt-6 rounded-2xl bg-black p-3">
+          <div className="mb-3 flex items-center justify-between px-1 text-white"><strong className="text-sm">Safer video preview</strong><span className="rounded-full bg-white/15 px-2 py-1 text-[10px] font-bold uppercase">{format}</span></div>
+          <video src={downloadUrl} controls preload="metadata" className="aspect-video w-full rounded-xl bg-black object-contain">Your browser cannot preview the generated video.</video>
+        </div>
+      )}
       <div className="mt-6 flex flex-wrap items-center gap-3">
-        {downloadUrl ? <a className="rounded-full bg-signal px-6 py-3 text-sm font-bold text-white hover:bg-[#148b60]" href={downloadUrl} download={`${file.name.replace(/\.[^.]+$/, "")}-${strategy}-safer.webm`}>Download safer version</a> : <button type="button" disabled={generating} onClick={generate} className="rounded-full bg-signal px-6 py-3 text-sm font-bold text-white hover:bg-[#148b60] disabled:opacity-50">Generate safer version</button>}
+        {downloadUrl ? <a className="rounded-full bg-signal px-6 py-3 text-sm font-bold text-white hover:bg-[#148b60]" href={downloadUrl} download={`${file.name.replace(/\.[^.]+$/, "")}-${strategy}-safer.${format}`}>Download {format.toUpperCase()}</a> : <button type="button" disabled={generating} onClick={generate} className="rounded-full bg-signal px-6 py-3 text-sm font-bold text-white hover:bg-[#148b60] disabled:opacity-50">Generate safer version</button>}
+        {downloadUrl && format === "webm" && <p className="text-xs text-amber-700 dark:text-amber-300">This browser cannot record MP4 directly, so it used WebM as a fallback.</p>}
         <p className="text-xs opacity-50">Generated locally in your browser. Keep this tab open and always review before publishing.</p>
       </div>
     </section>

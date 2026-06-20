@@ -8,15 +8,20 @@ export async function generateSaferVideo(file: File, report: AnalysisReport, str
   const video = document.createElement("video") as CapturableVideo;
   video.src = sourceUrl; video.preload = "auto"; video.playsInline = true;
   await once(video, "loadedmetadata");
+  const AudioContextClass = window.AudioContext;
+  const audioContext = new AudioContextClass();
+  const audioSource = audioContext.createMediaElementSource(video);
+  const silentAudioOutput = audioContext.createMediaStreamDestination();
+  // Route source audio into the recording only, never to the computer speakers.
+  audioSource.connect(silentAudioOutput);
   const scale = Math.min(1, 1280 / Math.max(video.videoWidth, 1));
   const canvas = document.createElement("canvas");
   canvas.width = Math.max(2, Math.round(video.videoWidth * scale)); canvas.height = Math.max(2, Math.round(video.videoHeight * scale));
   const context = canvas.getContext("2d");
   if (!context || !canvas.captureStream) throw new Error("Canvas recording is unavailable in this browser.");
   const output = canvas.captureStream(Math.min(30, 30));
-  const sourceStream = video.captureStream?.() ?? video.mozCaptureStream?.();
-  sourceStream?.getAudioTracks().forEach((track) => output.addTrack(track));
-  const mimeType = MediaRecorder.isTypeSupported("video/webm;codecs=vp9,opus") ? "video/webm;codecs=vp9,opus" : "video/webm";
+  silentAudioOutput.stream.getAudioTracks().forEach((track) => output.addTrack(track));
+  const mimeType = selectMimeType();
   const recorder = new MediaRecorder(output, { mimeType, videoBitsPerSecond: 5_000_000 });
   const chunks: BlobPart[] = [];
   recorder.ondataavailable = (event) => { if (event.data.size) chunks.push(event.data); };
@@ -35,12 +40,22 @@ export async function generateSaferVideo(file: File, report: AnalysisReport, str
     if (!video.ended) animation = requestAnimationFrame(draw);
   };
   try {
-    recorder.start(1000); animation = requestAnimationFrame(draw); await video.play(); await once(video, "ended");
+    await audioContext.resume(); recorder.start(1000); animation = requestAnimationFrame(draw); await video.play(); await once(video, "ended");
     cancelAnimationFrame(animation); recorder.stop(); await stopped; onProgress(100);
-    return new Blob(chunks, { type: mimeType });
+    return new Blob(chunks, { type: recorder.mimeType || mimeType });
   } finally {
-    cancelAnimationFrame(animation); video.pause(); video.removeAttribute("src"); video.load(); URL.revokeObjectURL(sourceUrl); output.getTracks().forEach((track) => track.stop());
+    cancelAnimationFrame(animation); video.pause(); video.removeAttribute("src"); video.load(); URL.revokeObjectURL(sourceUrl); output.getTracks().forEach((track) => track.stop()); await audioContext.close();
   }
+}
+
+function selectMimeType() {
+  const mp4 = ["video/mp4;codecs=avc1.42E01E,mp4a.40.2", "video/mp4;codecs=avc1.42E01E", "video/mp4"];
+  const supportedMp4 = mp4.find((type) => MediaRecorder.isTypeSupported(type));
+  if (supportedMp4) return supportedMp4;
+  const webm = ["video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm"];
+  const supportedWebm = webm.find((type) => MediaRecorder.isTypeSupported(type));
+  if (supportedWebm) return supportedWebm;
+  throw new Error("This browser cannot encode an MP4 or WebM video.");
 }
 
 function once(target: HTMLMediaElement, event: string) { return new Promise<void>((resolve, reject) => { const done = () => { cleanup(); resolve(); }; const failed = () => { cleanup(); reject(new Error("The browser could not process this video.")); }; const cleanup = () => { target.removeEventListener(event, done); target.removeEventListener("error", failed); }; target.addEventListener(event, done, { once: true }); target.addEventListener("error", failed, { once: true }); }); }
