@@ -1,8 +1,7 @@
 # Architecture
 
-The browser uploads directly to FastAPI and polls a job resource. FastAPI streams the upload to disk with a size limit, schedules CPU-bound analysis on a bounded thread pool, and returns the scanner's serialized report. The scanner has no HTTP dependency.
+The default website is local-first. The browser decodes the selected file, samples frames into an off-screen canvas, calculates luminance/contrast/red metrics, and builds the report without uploading the file. Auto-fix renders processed frames to a canvas and uses `MediaRecorder` to create a downloadable WebM file.
 
 Detector functions operate on frame metrics rather than API models. `ScannerConfig` owns policy thresholds, while `VideoScanner` is the OpenCV media adapter and aggregator. This separation supports future adapters for decoded GIF frames, streaming frame iterators, and local browser-extension runtimes without changing the report contract.
 
-The initial job store is deliberately small and process-local. Before horizontal production deployment, use a persistent queue, object storage with retention controls, authentication/rate limiting, malware inspection, and structured observability.
-
+The FastAPI/OpenCV implementation is retained as an optional reference and batch-processing adapter. It is not contacted by the default frontend.

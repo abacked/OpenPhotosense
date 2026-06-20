@@ -12,7 +12,8 @@ OpenPhotosense is an open-source web application that screens uploaded videos fo
 - Separate red-flash and high-contrast warnings
 - Auto-fix exports with smoothing, targeted dimming, or risky-interval removal
 - Responsive light/dark interface
-- FastAPI job API and modular OpenCV analysis engine
+- Private, browser-only processing: videos never leave the device
+- Optional FastAPI/OpenCV reference engine for research and batch workflows
 - Docker Compose and GitHub Actions setup
 
 ## Repository layout
@@ -28,29 +29,18 @@ tests/      Scanner and API tests
 
 ## Quick start
 
-Requirements: Python 3.11+, Node.js 20+, and FFmpeg. OpenCV reads common formats directly; installing FFmpeg expands codec support.
+Visitors need only a modern browser—there are no plugins, accounts, uploads, or local media tools to install. To run the website locally, developers need Node.js 20+:
 
 ```bash
 git clone https://github.com/your-org/OpenPhotosense.git
 cd OpenPhotosense
 
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-cp .env.example .env
-uvicorn backend.main:app --reload
-```
-
-In a second terminal:
-
-```bash
 cd frontend
-cp .env.example .env.local
 npm install
 npm run dev
 ```
 
-Open `http://localhost:3000`; the API documentation is at `http://localhost:8000/docs`.
+Open `http://localhost:3000`. Scanning, timeline generation, and safer-video rendering all run locally in the browser.
 
 ### Docker
 
@@ -66,20 +56,15 @@ python -m scanner.cli path/to/video.mp4 --output report.json
 
 ## How detection works
 
-Each frame is downsampled for consistent performance, converted to luminance, and compared with the preceding sampled frame. The engine records a flash event when normalized brightness changes by at least `0.20` or the combined luminance/spatial-contrast change reaches `0.35`. It separately marks a flash red when red-dominant pixels cover enough of the frame.
+Sampled frames are downscaled in an off-screen canvas, converted to luminance metrics, and compared with the preceding frame. The browser records brightness, contrast, and red-dominant transitions without transmitting the video. Safer versions are rendered to a canvas and encoded using the browser's built-in `MediaRecorder` API.
 
 Events are grouped into one-second windows. A window containing **more than three events** is marked high risk, reflecting the WCAG guidance around three flashes in a one-second period. The score also weights red flashes and high-contrast events. Thresholds live in `ScannerConfig`, making calibration and future detector profiles explicit.
 
 See [Detection methodology](docs/detection.md) for limitations and implementation details.
 
-## API summary
+## Optional Python engine
 
-```bash
-curl -F "video=@example.mp4" http://localhost:8000/api/v1/scans
-curl http://localhost:8000/api/v1/scans/JOB_ID
-```
-
-The first request returns HTTP 202 with a job ID. Poll the second endpoint for `queued`, `processing`, `completed`, or `failed` status. Completed jobs include the JSON report.
+The `backend/` and `scanner/` directories remain available as an optional reference implementation for CLI, automated batch, and future server workflows. They are not required by the website.
 
 ## Development
 
