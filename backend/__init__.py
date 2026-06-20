@@ -1,0 +1,2 @@
+"""OpenPhotosense HTTP API."""
+
