@@ -26,11 +26,6 @@ body { margin: 0; }
   0%, 100% { transform: translateY(0) rotate(45deg); }
   50% { transform: translateY(-4px) rotate(53deg); }
 }
-@keyframes scan-pass {
-  0% { transform: translateY(-140%); opacity: 0; }
-  18%, 82% { opacity: .38; }
-  100% { transform: translateY(520%); opacity: 0; }
-}
 @keyframes progress-glow {
   0% { transform: translateX(-120%); }
   100% { transform: translateX(260%); }
@@ -40,17 +35,6 @@ body { margin: 0; }
 .ambient-orb-reverse { animation: ambient-drift-reverse 17s ease-in-out infinite; filter: blur(8px); }
 .logo-mark { animation: gentle-float 4s ease-in-out infinite; }
 .upload-zone { position: relative; isolation: isolate; overflow: hidden; }
-.upload-zone::after {
-  background: linear-gradient(180deg, transparent, rgba(25, 169, 116, .16), transparent);
-  content: "";
-  inset: 0;
-  opacity: 0;
-  pointer-events: none;
-  position: absolute;
-  transform: translateY(-140%);
-  z-index: -1;
-}
-.upload-zone.is-scanning::after, .upload-zone.is-dragging::after { animation: scan-pass 3.2s ease-in-out infinite; }
 .upload-icon { transition: transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s ease; }
 .upload-zone:hover .upload-icon, .upload-zone.is-dragging .upload-icon { box-shadow: 0 14px 32px -12px rgba(25, 169, 116, .65); transform: translateY(-5px) rotate(4deg); }
 .feature-card { transition: transform .35s ease, opacity .35s ease; }

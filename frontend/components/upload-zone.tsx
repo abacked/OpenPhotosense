@@ -23,7 +23,7 @@ export function UploadZone({ onFile, disabled }: { onFile: (file: File) => void;
       onDragOver={(event) => { event.preventDefault(); setDragging(true); }}
       onDragLeave={() => setDragging(false)}
       onDrop={drop}
-      className={`upload-zone rounded-[2rem] border-2 border-dashed p-8 text-center transition duration-300 sm:p-12 ${disabled ? "is-scanning" : ""} ${dragging ? "is-dragging scale-[1.01] border-signal bg-signal/10 shadow-soft" : "border-black/15 bg-white/70 hover:border-signal/45 hover:bg-white dark:border-white/15 dark:bg-white/[.04] dark:hover:bg-white/[.07]"}`}
+      className={`upload-zone rounded-[2rem] border-2 border-dashed p-8 text-center transition duration-300 sm:p-12 ${dragging ? "is-dragging scale-[1.01] border-signal bg-signal/10 shadow-soft" : "border-black/15 bg-white/70 hover:border-signal/45 hover:bg-white dark:border-white/15 dark:bg-white/[.04] dark:hover:bg-white/[.07]"}`}
     >
       <div className="upload-icon mx-auto mb-5 grid size-14 place-items-center rounded-2xl bg-ink text-2xl text-white dark:bg-white dark:text-ink">↑</div>
       <p className="font-display text-xl font-semibold">Drop your video here</p>
