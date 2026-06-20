@@ -1,9 +1,10 @@
 import type { AnalysisReport } from "@/lib/types";
 import { AutoFix } from "@/components/auto-fix";
+import { VideoPreview } from "@/components/video-preview";
 
 const tones = { low: "bg-emerald-100 text-emerald-800", medium: "bg-amber-100 text-amber-800", high: "bg-red-100 text-red-800" };
 
-export function Results({ report, scanId }: { report: AnalysisReport; scanId: string }) {
+export function Results({ report, scanId, videoUrl }: { report: AnalysisReport; scanId: string; videoUrl: string }) {
   const frequency = Object.entries(report.flashes_per_second).filter(([, count]) => count > 0);
   return (
     <section className="animate-rise mt-8 space-y-5" aria-live="polite">
@@ -17,6 +18,7 @@ export function Results({ report, scanId }: { report: AnalysisReport; scanId: st
         </div>
       </div>
       {report.red_flash_events > 0 && <div className="rounded-2xl border border-red-300 bg-red-50 p-5 text-red-900"><strong>Red flash warning.</strong> Strong red-dominant transitions were detected and should be reviewed carefully.</div>}
+      <VideoPreview src={videoUrl} events={report.events} duration={report.duration_seconds} />
       <div className="grid gap-5 lg:grid-cols-2">
         <div className="rounded-[2rem] bg-white p-7 shadow-soft dark:bg-white/[.05]"><h3 className="font-display text-lg font-bold">Flagged timestamps</h3><div className="mt-4 max-h-64 space-y-2 overflow-auto">{report.events.length ? report.events.map((event, i) => <div key={`${event.timestamp}-${i}`} className="flex items-center justify-between rounded-xl bg-mist p-3 text-sm dark:bg-black/20"><code>{event.timestamp}</code><span className={event.is_red_flash ? "text-red-600" : "opacity-50"}>{event.is_red_flash ? "Red flash" : `Δ ${event.brightness_delta}`}</span></div>) : <p className="text-sm opacity-55">No risky transitions detected.</p>}</div></div>
         <div className="rounded-[2rem] bg-white p-7 shadow-soft dark:bg-white/[.05]"><h3 className="font-display text-lg font-bold">Flash frequency</h3><p className="mt-1 text-sm opacity-55">Windows above 3 flashes/second require review.</p><div className="mt-5 space-y-3">{frequency.length ? frequency.map(([time, count]) => <div key={time}><div className="mb-1 flex justify-between text-xs"><span>{time}</span><b className={count > 3 ? "text-red-600" : ""}>{count}/sec</b></div><div className="h-2 rounded-full bg-black/5 dark:bg-white/10"><div className={`h-2 rounded-full ${count > 3 ? "bg-red-500" : "bg-signal"}`} style={{ width: `${Math.min(count / 8 * 100, 100)}%` }} /></div></div>) : <p className="text-sm opacity-55">No frequency data to display.</p>}</div></div>
