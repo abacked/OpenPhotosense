@@ -48,7 +48,7 @@ export default function Home() {
         </header>
         <section className="mt-12 animate-rise [animation-delay:120ms]">
           <UploadZone onFile={upload} disabled={busy} />
-          {busy && <div className="animate-rise mt-5 rounded-2xl bg-white p-5 shadow-soft dark:bg-white/[.05]" aria-live="polite"><div className="mb-3 flex justify-between gap-3 text-sm"><span className="truncate font-semibold">Scanning {filename}</span><span className="font-mono text-signal">{progress}%</span></div><div className="h-2 overflow-hidden rounded-full bg-black/5 dark:bg-white/10"><div className="progress-shine h-full rounded-full bg-signal transition-all duration-500" style={{ width: `${progress}%` }} /></div><p className="mt-3 text-xs opacity-50">You can keep this tab open while frames are analyzed.</p></div>}
+          {busy && <div className="animate-rise mt-5 rounded-2xl bg-white p-5 shadow-soft dark:bg-white/[.05]" aria-live="polite"><div className="mb-3 flex justify-between gap-3 text-sm"><span className="truncate font-semibold">Scanning {filename}</span><span className="font-mono text-signal">{progress}%</span></div><div className="h-2 overflow-hidden rounded-full bg-black/5 dark:bg-white/10"><div className="h-full rounded-full bg-[#19a974] transition-all duration-500" style={{ width: `${progress}%` }} /></div><p className="mt-3 text-xs opacity-50">You can keep this tab open while frames are analyzed.</p></div>}
           {error && <p role="alert" className="mt-5 rounded-2xl border border-red-300 bg-red-50 p-4 text-sm text-red-800">{error}</p>}
           {report && videoFile && videoUrl && <Results report={report} file={videoFile} videoUrl={videoUrl} />}
         </section>
