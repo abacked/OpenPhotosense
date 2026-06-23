@@ -34,9 +34,9 @@ body { margin: 0; }
 .ambient-orb { animation: ambient-drift 14s ease-in-out infinite; filter: blur(4px); }
 .ambient-orb-reverse { animation: ambient-drift-reverse 17s ease-in-out infinite; filter: blur(8px); }
 .logo-mark { animation: gentle-float 4s ease-in-out infinite; }
-.upload-zone { position: relative; isolation: isolate; overflow: hidden; }
+.upload-zone { position: relative; isolation: isolate; }
 .upload-icon { transition: transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s ease; }
-.upload-zone:hover .upload-icon, .upload-zone.is-dragging .upload-icon { box-shadow: 0 14px 32px -12px rgba(25, 169, 116, .65); transform: translateY(-5px) rotate(4deg); }
+.upload-zone:hover .upload-icon, .upload-zone.is-dragging .upload-icon { box-shadow: 0 16px 36px -14px rgba(25, 169, 116, .58); transform: translateY(-3px); }
 .feature-card { transition: transform .35s ease, opacity .35s ease; }
 .feature-card:hover { transform: translateY(-6px); }
 .progress-shine { overflow: hidden; position: relative; }
