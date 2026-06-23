@@ -38,7 +38,7 @@ export default function Home() {
       </div>
       <nav className="mx-auto flex max-w-6xl items-center justify-between px-5 py-6 sm:px-8">
         <a href="#" className="font-display text-lg font-extrabold tracking-tight"><span className="logo-mark mr-2 inline-block size-3 rotate-45 rounded-sm bg-signal" />OpenPhotosense</a>
-        <div className="flex items-center gap-4"><a href="https://github.com" className="hidden text-sm font-semibold opacity-60 hover:opacity-100 sm:block">Open source</a><ThemeToggle /></div>
+        <div className="flex items-center gap-4"><a href="https://github.com/abacked/OpenPhotosense" target="_blank" rel="noreferrer" className="hidden text-sm font-semibold opacity-60 hover:opacity-100 sm:block">Open source</a><ThemeToggle /></div>
       </nav>
       <div className="mx-auto max-w-4xl px-5 pb-24 pt-14 sm:px-8 sm:pt-24">
         <header className="animate-rise text-center">
