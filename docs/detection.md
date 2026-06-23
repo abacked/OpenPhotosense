@@ -1,31 +1,41 @@
 # Detection methodology
 
-OpenPhotosense performs conservative frame-transition screening inspired by the WCAG 2.x “Three Flashes or Below Threshold” guidance. It does not currently implement the complete general-flash and red-flash area formulas from the normative standard, so its output must be treated as an editorial signal rather than a conformance decision.
+OpenPhotosense performs conservative browser-based screening informed by WCAG 2.2 “Three Flashes or Below Threshold.” It is an editorial aid, not a conformance decision or medical diagnostic tool.
 
 ## Pipeline
 
-1. OpenCV decodes the video and supplies its frame rate and frames.
-2. Frames are resized to 320×180 to bound CPU and memory use.
-3. Grayscale mean and standard deviation represent luminance and spatial contrast.
-4. Adjacent measurements are compared against configurable thresholds.
-5. Red dominance is estimated from red-channel separation and affected area.
-6. Events are timestamped, grouped by integer-second window, and scored.
+1. The browser decodes the selected video locally.
+2. Frames are sampled at 12 frames per second and resized to 320×180.
+3. Sampled sRGB channels are linearized and converted to relative luminance.
+4. Adjacent frames produce per-pixel general-flash and saturated-red transition masks.
+5. Non-overlapping opposing transitions are paired into flashes.
+6. The intersection of both transition masks estimates the area participating in the complete flash.
+7. Every flash is evaluated in a rolling one-second window.
 
-The default brightness delta is 0.20 on a normalized 0–1 scale. The high-contrast threshold is 0.35 for the sum of absolute brightness and contrast changes. A red flash must also be a brightness flash, cover at least 55% of the sampled image with a red signal, and have red-channel mean at least 1.35 times the other channels.
+## General flash calculation
 
-## Risk score
+A sampled pixel participates in a general transition when its relative-luminance change is at least 0.10 and the darker state is below 0.80. An increase followed by a decrease, or a decrease followed by an increase, forms one flash. Transitions are consumed in pairs so one bright/dark pulse is not counted twice.
 
-The bounded score adds 25 points for each second over the three-flash limit, 8 per red flash, 2 per high-contrast event, and 1 per recorded event. A score of 70 or any window above three flashes is high risk. Scores of 25–69, or any red event, are medium risk. Other reports are low risk.
+## Red flash calculation
 
-This heuristic is intentionally readable and versioned. Before changing thresholds, add synthetic fixtures, evaluate against a labeled corpus, document precision/recall changes, and increment `methodology_version`.
+A sampled pixel is treated as saturated red when `R / (R + G + B) ≥ 0.8`. Colors are converted through CIE XYZ to 1976 UCS `u′,v′`; a transition participates in the red mask when its chromaticity distance is greater than 0.2. Opposing transitions are paired using the same temporal model.
+
+## Area calculation
+
+WCAG describes an area limit of 25% of a 341×256 CSS-pixel ten-degree field at a 1024×768 reference viewport: 21,824 pixels. For conservative full-frame video screening, OpenPhotosense expresses that as approximately 2.78% of the analyzed frame. Reports show the affected-frame percentage and identify events above this reference area.
+
+This raster approximation does not prove spatial contiguity inside every possible ten-degree viewing window. Display size, viewing distance, magnification, HDR transfer functions, browser decoding, and source color metadata can change a normative assessment.
+
+## Rolling frequency
+
+For every flash, the scanner counts flashes occurring during the preceding one-second interval. This prevents a rapid burst from being split by fixed integer-second boundaries. A rolling count above three is treated as high risk.
 
 ## Known limitations
 
-- Compression artifacts, fades, camera cuts, and strobe-like patterns can cause false results.
-- Integer-second windows can split a burst across boundaries; a future rolling-window detector is planned.
-- The current red detector is an approximation, not the normative WCAG red-flash equation.
-- Decoder and color-space differences can affect measurements.
-- The in-process queue is appropriate for a single instance only.
+- The 12 fps sampling rate cannot characterize all high-frequency or very short flashes.
+- Compression artifacts, edits, fades, and camera cuts can produce false results.
+- Fine balanced patterns and precise contiguous-area geometry are not specially exempted.
+- SDR sRGB calculations are used; HDR footage needs dedicated luminance handling.
+- A low-risk result is never proof that content is safe for every viewer.
 
-Never interpret a low-risk result as proof that content is safe for every viewer.
-
+Threshold changes should be evaluated against labeled fixtures and accompanied by benchmark results before release.

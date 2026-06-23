@@ -6,6 +6,9 @@ export interface FlashEvent {
   brightness_delta: number;
   contrast_delta: number;
   is_red_flash: boolean;
+  affected_area_ratio?: number;
+  red_area_ratio?: number;
+  exceeds_area_threshold?: boolean;
 }
 
 export interface AnalysisReport {
