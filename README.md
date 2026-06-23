@@ -1,81 +1,57 @@
 # OpenPhotosense
 
-OpenPhotosense is an open-source web application that screens uploaded videos for potential photosensitive accessibility hazards. It identifies rapid luminance transitions, red-dominant flashes, and high-contrast changes, then provides a timestamped report for human review.
+OpenPhotosense is a private, open-source browser tool for reviewing videos for potential photosensitive accessibility hazards before publishing.
 
-> **Important:** OpenPhotosense is an accessibility screening aid, **not a medical diagnostic tool**, certification service, or guarantee of WCAG conformance. Automated results can contain false positives and false negatives. Qualified human review remains necessary before publishing.
+Drop in a video and it checks for rapid luminance changes, red-dominant flashes, high-contrast transitions, and periods exceeding three flashes per second. Results include a risk score, exact timestamps, a highlighted video timeline, and safer-video options.
+
+> **Important:** OpenPhotosense is an accessibility screening aid, **not a medical diagnostic tool**, certification service, or guarantee of WCAG conformance. Automated results can include false positives and false negatives. Human review remains necessary.
+
+## No installation or upload required
+
+The complete workflow runs inside the browser:
+
+1. Drag in a video.
+2. Review the risk report and highlighted timeline.
+3. Choose the recommended correction or select another approach.
+4. Preview and download the safer version.
+
+Videos are decoded, scanned, corrected, and exported locally. They are never sent to an OpenPhotosense server, and users do not need an account, browser extension, Python, OpenCV, or FFmpeg.
 
 ## Features
 
-- Drag-and-drop video upload with live scan progress
-- Risk levels, a 0–100 explainable score, and event timestamps
-- Flash-frequency windows that flag more than three transitions per second
+- Drag-and-drop video scanning with live progress
+- Low, medium, and high risk levels with an explainable score
+- Exact flash timestamps and a draggable highlighted timeline
+- Flash-frequency analysis based on the three-flashes-per-second guideline
 - Separate red-flash and high-contrast warnings
-- Auto-fix exports with smoothing, targeted dimming, or risky-interval removal
-- Responsive light/dark interface
-- Private, browser-only processing: videos never leave the device
-- Optional FastAPI/OpenCV reference engine for research and batch workflows
-- Docker Compose and GitHub Actions setup
-
-## Repository layout
-
-```text
-frontend/   Next.js, TypeScript, and Tailwind user interface
-backend/    FastAPI upload and background job API
-scanner/    Media-independent analysis models and OpenCV video adapter
-docs/       Architecture, API, and detection notes
-examples/   Example reports
-tests/      Scanner and API tests
-```
-
-## Quick start
-
-Visitors need only a modern browser—there are no plugins, accounts, uploads, or local media tools to install. To run the website locally, developers need Node.js 20+:
-
-```bash
-git clone https://github.com/your-org/OpenPhotosense.git
-cd OpenPhotosense
-
-cd frontend
-npm install
-npm run dev
-```
-
-Open `http://localhost:3000`. Scanning, timeline generation, and safer-video rendering all run locally in the browser.
-
-### Docker
-
-```bash
-docker compose up --build
-```
-
-### Scanner CLI
-
-```bash
-python -m scanner.cli path/to/video.mp4 --output report.json
-```
+- Original and corrected video previews
+- Recommended correction based on the footage
+- Smoothing, targeted dimming, and risky-interval removal
+- MP4-first safer-video export with browser-compatible fallback
+- Cancellable generation
+- Responsive light and dark themes
+- Reduced-motion support
 
 ## How detection works
 
-Sampled frames are downscaled in an off-screen canvas, converted to luminance metrics, and compared with the preceding frame. The browser records brightness, contrast, and red-dominant transitions without transmitting the video. Safer versions are rendered to a canvas and encoded using the browser's built-in `MediaRecorder` API.
+The browser samples frames into an off-screen canvas and compares luminance, spatial contrast, and red-channel dominance between frames. Near-identical transitions are merged so the bright and dark sides of one flash are not reported as duplicate events.
 
-Events are grouped into one-second windows. A window containing **more than three events** is marked high risk, reflecting the WCAG guidance around three flashes in a one-second period. The score also weights red flashes and high-contrast events. Thresholds live in `ScannerConfig`, making calibration and future detector profiles explicit.
+Events are grouped into one-second windows. Windows containing more than three flashes are treated as high risk, following WCAG guidance. The overall score also considers red flashes, high-contrast transitions, event density, and sustained unsafe periods.
 
-See [Detection methodology](docs/detection.md) for limitations and implementation details.
+Auto-fix recommendations use the same report:
 
-## Optional Python engine
+- **Smooth** for brief, isolated luminance changes
+- **Dim** when red-dominant flashes make up a significant share of warnings
+- **Remove** for dense or sustained flashing
 
-The `backend/` and `scanner/` directories remain available as an optional reference implementation for CLI, automated batch, and future server workflows. They are not required by the website.
+See the [detection methodology](docs/detection.md) for thresholds, limitations, and implementation details.
 
-## Development
+## Privacy
 
-```bash
-ruff check backend scanner tests
-pytest
-cd frontend && npm run typecheck && npm run build
-```
+Selected videos remain on the user’s device. Browser object URLs, canvas processing, and media recording are used locally; OpenPhotosense does not retain or transmit the source video.
 
-Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing changes. The planned path to persistent workers, GIFs, streams, and browser tooling is in [ROADMAP.md](ROADMAP.md).
+## Open source
 
-## License
+Contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md), review the [roadmap](ROADMAP.md), or open an issue with a reproducible example.
 
-Apache License 2.0. See [LICENSE](LICENSE).
+Licensed under the [Apache License 2.0](LICENSE).
