@@ -6,6 +6,7 @@
 .dark { color-scheme: dark; }
 * { box-sizing: border-box; }
 body { margin: 0; }
+html, body { overflow-x: hidden; }
 ::selection { background: #9ce5ca; color: #101828; }
 
 @keyframes rise {
@@ -32,11 +33,18 @@ body { margin: 0; }
 .logo-mark { animation: gentle-float 4s ease-in-out infinite; }
 .upload-zone { position: relative; isolation: isolate; }
 .upload-icon { transition: transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s ease; }
-.upload-zone:hover .upload-icon, .upload-zone.is-dragging .upload-icon { box-shadow: 0 16px 36px -14px rgba(25, 169, 116, .58); transform: translateY(-3px); }
 .feature-card { transition: transform .35s ease, opacity .35s ease; }
-.feature-card:hover { transform: translateY(-6px); }
 .lift-card { transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease; }
-.lift-card:hover { transform: translateY(-3px); }
+
+@media (hover: hover) and (pointer: fine) {
+  .upload-zone:hover .upload-icon, .upload-zone.is-dragging .upload-icon { box-shadow: 0 16px 36px -14px rgba(25, 169, 116, .58); transform: translateY(-3px); }
+  .feature-card:hover { transform: translateY(-6px); }
+  .lift-card:hover { transform: translateY(-3px); }
+}
+
+@media (hover: none) {
+  .upload-zone.is-dragging .upload-icon { box-shadow: 0 16px 36px -14px rgba(25, 169, 116, .58); transform: translateY(-3px); }
+}
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }

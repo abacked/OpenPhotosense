@@ -14,9 +14,9 @@ export function ThemeToggle() {
   }
 
   return (
-    <div className="flex rounded-full border border-black/10 bg-black/[.03] p-1 text-xs font-bold dark:border-white/15 dark:bg-white/[.05]" aria-label="Color theme">
-      <button type="button" onClick={() => select("light")} className="rounded-full bg-white px-3 py-1.5 text-ink shadow-sm transition dark:bg-transparent dark:text-inherit dark:shadow-none dark:opacity-50">Light</button>
-      <button type="button" onClick={() => select("dark")} className="rounded-full px-3 py-1.5 opacity-50 transition dark:bg-white dark:text-ink dark:opacity-100 dark:shadow-sm">Dark</button>
+    <div className="flex rounded-full border border-black/10 bg-black/[.03] p-1 text-[11px] font-bold dark:border-white/15 dark:bg-white/[.05] sm:text-xs" aria-label="Color theme">
+      <button type="button" onClick={() => select("light")} className="rounded-full bg-white px-2.5 py-1.5 text-ink shadow-sm transition dark:bg-transparent dark:text-inherit dark:shadow-none dark:opacity-50 sm:px-3">Light</button>
+      <button type="button" onClick={() => select("dark")} className="rounded-full px-2.5 py-1.5 opacity-50 transition dark:bg-white dark:text-ink dark:opacity-100 dark:shadow-sm sm:px-3">Dark</button>
     </div>
   );
 }

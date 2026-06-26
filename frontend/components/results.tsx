@@ -7,34 +7,34 @@ const tones = { low: "bg-emerald-100 text-emerald-800", medium: "bg-amber-100 te
 export function Results({ report, file, videoUrl }: { report: AnalysisReport; file: File; videoUrl: string }) {
   const frequency = Object.entries(report.flashes_per_second);
   return (
-    <section className="animate-rise mt-8 space-y-5" aria-live="polite">
-      <div className="lift-card rounded-[2rem] bg-ink p-7 text-white shadow-soft dark:bg-white dark:text-ink sm:p-9">
-        <div className="flex flex-wrap items-start justify-between gap-5">
-          <div><p className="text-xs font-bold uppercase tracking-[.2em] opacity-50">Analysis complete</p><h2 className="mt-2 font-display text-3xl font-bold">Accessibility report</h2></div>
-          <span className={`rounded-full px-4 py-2 text-sm font-extrabold uppercase tracking-wider ${tones[report.risk_level]}`}>{report.risk_level} risk · {report.risk_score}/100</span>
+    <section className="animate-rise mt-7 space-y-4 sm:mt-8 sm:space-y-5" aria-live="polite">
+      <div className="lift-card rounded-[1.6rem] bg-ink p-5 text-white shadow-soft dark:bg-white dark:text-ink sm:rounded-[2rem] sm:p-9">
+        <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:gap-5">
+          <div><p className="text-[11px] font-bold uppercase tracking-[.18em] opacity-50 sm:text-xs sm:tracking-[.2em]">Analysis complete</p><h2 className="mt-2 font-display text-2xl font-bold sm:text-3xl">Accessibility report</h2></div>
+          <span className={`w-full rounded-full px-4 py-2 text-center text-xs font-extrabold uppercase tracking-wider sm:w-auto sm:text-sm ${tones[report.risk_level]}`}>{report.risk_level} risk · {report.risk_score}/100</span>
         </div>
-        <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
-          {[["Flash events", report.total_flash_events], ["Red flashes", report.red_flash_events], ["Contrast changes", report.high_contrast_events], ["Frames scanned", report.frames_analyzed]].map(([label, value]) => <div key={label} className="rounded-2xl bg-white/10 p-4 dark:bg-black/5"><p className="text-2xl font-bold">{value}</p><p className="mt-1 text-xs opacity-60">{label}</p></div>)}
+        <div className="mt-6 grid grid-cols-2 gap-3 sm:mt-8 sm:grid-cols-4 sm:gap-4">
+          {[["Flash events", report.total_flash_events], ["Red flashes", report.red_flash_events], ["Contrast changes", report.high_contrast_events], ["Frames scanned", report.frames_analyzed]].map(([label, value]) => <div key={label} className="rounded-2xl bg-white/10 p-3 dark:bg-black/5 sm:p-4"><p className="text-xl font-bold sm:text-2xl">{value}</p><p className="mt-1 text-[11px] leading-4 opacity-60 sm:text-xs">{label}</p></div>)}
         </div>
       </div>
 
-      {report.red_flash_events > 0 && <div className="rounded-2xl border border-red-300 bg-red-50 p-5 text-red-900"><strong>Red flash warning.</strong> Saturated-red opposing transitions were detected and should be reviewed carefully.</div>}
+      {report.red_flash_events > 0 && <div className="rounded-2xl border border-red-300 bg-red-50 p-4 text-sm leading-6 text-red-900 sm:p-5"><strong>Red flash warning.</strong> Saturated-red opposing transitions were detected and should be reviewed carefully.</div>}
       <VideoPreview src={videoUrl} events={report.events} duration={report.duration_seconds} />
 
       <div className="grid gap-5 lg:grid-cols-2">
-        <div className="lift-card rounded-[2rem] bg-white p-7 shadow-soft dark:bg-white/[.05]">
+        <div className="lift-card rounded-[1.6rem] bg-white p-5 shadow-soft dark:bg-white/[.05] sm:rounded-[2rem] sm:p-7">
           <h3 className="font-display text-lg font-bold">Flagged timestamps</h3>
           <div className="mt-4 max-h-72 space-y-2 overflow-auto">
             {report.events.length ? report.events.map((event, index) => (
               <div key={`${event.timestamp}-${index}`} className="rounded-xl bg-mist p-3 text-sm dark:bg-black/20">
-                <div className="flex items-center justify-between gap-3"><code>{event.timestamp}</code><span className={event.is_red_flash ? "font-semibold text-red-600" : "opacity-55"}>{event.is_red_flash ? "Red flash" : `Δ ${event.brightness_delta}`}</span></div>
-                {event.affected_area_ratio !== undefined && <div className="mt-2 flex items-center justify-between text-[11px] opacity-55"><span>Affected frame area</span><span className={event.exceeds_area_threshold ? "font-bold text-red-600 opacity-100" : ""}>{(event.affected_area_ratio * 100).toFixed(1)}%{event.exceeds_area_threshold ? " · above area threshold" : ""}</span></div>}
+                <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1"><code>{event.timestamp}</code><span className={event.is_red_flash ? "font-semibold text-red-600" : "opacity-55"}>{event.is_red_flash ? "Red flash" : `Δ ${event.brightness_delta}`}</span></div>
+                {event.affected_area_ratio !== undefined && <div className="mt-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-[11px] opacity-55"><span>Affected frame area</span><span className={event.exceeds_area_threshold ? "font-bold text-red-600 opacity-100" : ""}>{(event.affected_area_ratio * 100).toFixed(1)}%{event.exceeds_area_threshold ? " · above area threshold" : ""}</span></div>}
               </div>
             )) : <p className="text-sm opacity-55">No risky transitions detected.</p>}
           </div>
         </div>
 
-        <div className="lift-card rounded-[2rem] bg-white p-7 shadow-soft dark:bg-white/[.05]">
+        <div className="lift-card rounded-[1.6rem] bg-white p-5 shadow-soft dark:bg-white/[.05] sm:rounded-[2rem] sm:p-7">
           <h3 className="font-display text-lg font-bold">Rolling flash frequency</h3>
           <p className="mt-1 text-sm opacity-55">Every event is checked against the preceding one-second window.</p>
           <div className="mt-5 max-h-72 space-y-3 overflow-auto">
@@ -43,7 +43,7 @@ export function Results({ report, file, videoUrl }: { report: AnalysisReport; fi
         </div>
       </div>
 
-      <p className="rounded-2xl bg-signal/10 p-5 text-sm"><strong>Recommendation:</strong> {report.recommendation}</p>
+      <p className="rounded-2xl bg-signal/10 p-4 text-sm leading-6 sm:p-5"><strong>Recommendation:</strong> {report.recommendation}</p>
       <AutoFix file={file} report={report} />
     </section>
   );
