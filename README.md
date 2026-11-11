@@ -16,7 +16,7 @@ Drop in a video and it checks for rapid luminance changes, red-dominant flashes,
 | --- | --- |
 | ![Accessibility report showing a high risk score, flash events, red flashes, contrast changes and frames scanned](docs/screenshots/report.jpg) | ![Flagged timestamps with affected frame area, and the rolling flash frequency per one-second window](docs/screenshots/timeline.jpg) |
 
-![Auto-fix panel recommending smoothing, with dim and remove as alternatives](docs/screenshots/auto-fix.jpg)
+![Safer-version panel recommending removal of risky moments, with smooth and dim as alternatives](docs/screenshots/auto-fix.jpg)
 
 ## No installation or upload required
 

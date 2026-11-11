@@ -2,48 +2,67 @@ import { AutoFix } from "@/components/auto-fix";
 import { VideoPreview } from "@/components/video-preview";
 import type { AnalysisReport } from "@/lib/types";
 
-const tones = { low: "bg-emerald-100 text-emerald-800", medium: "bg-amber-100 text-amber-800", high: "bg-red-100 text-red-800" };
+const tones = { low: "text-emerald-700 dark:text-emerald-400", medium: "text-amber-700 dark:text-amber-400", high: "text-red-700 dark:text-red-400" };
 
 export function Results({ report, file, videoUrl }: { report: AnalysisReport; file: File; videoUrl: string }) {
   const frequency = Object.entries(report.flashes_per_second);
   return (
-    <section className="animate-rise mt-7 space-y-4 sm:mt-8 sm:space-y-5" aria-live="polite">
-      <div className="lift-card rounded-[1.6rem] bg-ink p-5 text-white shadow-soft dark:bg-white dark:text-ink sm:rounded-[2rem] sm:p-9">
-        <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:gap-5">
-          <div><p className="text-[11px] font-bold uppercase tracking-[.18em] opacity-50 sm:text-xs sm:tracking-[.2em]">Analysis complete</p><h2 className="mt-2 font-display text-2xl font-bold sm:text-3xl">Accessibility report</h2></div>
-          <span className={`w-full rounded-full px-4 py-2 text-center text-xs font-extrabold uppercase tracking-wider sm:w-auto sm:text-sm ${tones[report.risk_level]}`}>{report.risk_level} risk · {report.risk_score}/100</span>
-        </div>
-        <div className="mt-6 grid grid-cols-2 gap-3 sm:mt-8 sm:grid-cols-4 sm:gap-4">
-          {[["Flash events", report.total_flash_events], ["Red flashes", report.red_flash_events], ["Contrast changes", report.high_contrast_events], ["Frames scanned", report.frames_analyzed]].map(([label, value]) => <div key={label} className="rounded-2xl bg-white/10 p-3 dark:bg-black/5 sm:p-4"><p className="text-xl font-bold sm:text-2xl">{value}</p><p className="mt-1 text-[11px] leading-4 opacity-60 sm:text-xs">{label}</p></div>)}
-        </div>
+    <section className="mt-16 space-y-16" aria-live="polite">
+      <div>
+        <p className="eyebrow">Accessibility report</p>
+        <h2 className="mt-4 flex flex-wrap items-baseline gap-x-4 text-[34px] font-[620] leading-[1.05] tracking-[-.05em] sm:text-[40px]">
+          <span className={tones[report.risk_level]}>{report.risk_level[0].toUpperCase() + report.risk_level.slice(1)} risk</span>
+          <span className="text-xl font-normal tracking-[-.02em] text-muted">{report.risk_score} / 100</span>
+        </h2>
+        <p className="mt-4 text-[17px] leading-[1.65] text-muted">{report.recommendation}</p>
+        <dl className="rule mt-8 grid grid-cols-2 border-t sm:grid-cols-4">
+          {[["Flash events", report.total_flash_events], ["Red flashes", report.red_flash_events], ["Contrast changes", report.high_contrast_events], ["Frames scanned", report.frames_analyzed]].map(([label, value]) => (
+            <div key={label} className="rule border-b py-4 pr-4">
+              <dd className="text-2xl font-medium tabular-nums tracking-[-.03em]">{value}</dd>
+              <dt className="mt-1 text-[13px] text-muted">{label}</dt>
+            </div>
+          ))}
+        </dl>
+        {report.red_flash_events > 0 && <p className="mt-6 text-sm leading-6"><span className="mr-2 inline-block size-2 rounded-full bg-red-500" /><strong className="font-medium">Red flash warning.</strong> <span className="text-muted">Saturated-red opposing transitions were detected and should be reviewed carefully.</span></p>}
       </div>
 
-      {report.red_flash_events > 0 && <div className="rounded-2xl border border-red-300 bg-red-50 p-4 text-sm leading-6 text-red-900 sm:p-5"><strong>Red flash warning.</strong> Saturated-red opposing transitions were detected and should be reviewed carefully.</div>}
       <VideoPreview src={videoUrl} events={report.events} duration={report.duration_seconds} />
 
-      <div className="grid gap-5 lg:grid-cols-2">
-        <div className="lift-card rounded-[1.6rem] bg-white p-5 shadow-soft dark:bg-white/[.05] sm:rounded-[2rem] sm:p-7">
-          <h3 className="font-display text-lg font-bold">Flagged timestamps</h3>
-          <div className="mt-4 max-h-72 space-y-2 overflow-auto">
+      <div className="grid gap-16 sm:grid-cols-2 sm:gap-10">
+        <div>
+          <h3 className="text-base font-medium">Flagged timestamps</h3>
+          <ul className="rule mt-4 max-h-80 overflow-auto border-t">
             {report.events.length ? report.events.map((event, index) => (
-              <div key={`${event.timestamp}-${index}`} className="rounded-xl bg-mist p-3 text-sm dark:bg-black/20">
-                <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1"><code>{event.timestamp}</code><span className={event.is_red_flash ? "font-semibold text-red-600" : "opacity-55"}>{event.is_red_flash ? "Red flash" : `Δ ${event.brightness_delta}`}</span></div>
-                {event.affected_area_ratio !== undefined && <div className="mt-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-[11px] opacity-55"><span>Affected frame area</span><span className={event.exceeds_area_threshold ? "font-bold text-red-600 opacity-100" : ""}>{(event.affected_area_ratio * 100).toFixed(1)}%{event.exceeds_area_threshold ? " · above area threshold" : ""}</span></div>}
-              </div>
-            )) : <p className="text-sm opacity-55">No risky transitions detected.</p>}
-          </div>
+              <li key={`${event.timestamp}-${index}`} className="rule border-b py-3 text-sm">
+                <div className="flex items-baseline justify-between gap-3">
+                  <span className="tabular-nums">{event.timestamp}</span>
+                  <span className={event.is_red_flash ? "text-red-700 dark:text-red-400" : "tabular-nums text-muted"}>{event.is_red_flash ? "Red flash" : `Δ ${event.brightness_delta}`}</span>
+                </div>
+                {event.affected_area_ratio !== undefined && (
+                  <div className="mt-1 flex items-baseline justify-between gap-3 text-[12px] text-muted">
+                    <span>Affected area</span>
+                    <span className={event.exceeds_area_threshold ? "text-red-700 dark:text-red-400" : ""}>{(event.affected_area_ratio * 100).toFixed(1)}%{event.exceeds_area_threshold ? " · above threshold" : ""}</span>
+                  </div>
+                )}
+              </li>
+            )) : <li className="py-3 text-sm text-muted">No risky transitions detected.</li>}
+          </ul>
         </div>
 
-        <div className="lift-card rounded-[1.6rem] bg-white p-5 shadow-soft dark:bg-white/[.05] sm:rounded-[2rem] sm:p-7">
-          <h3 className="font-display text-lg font-bold">Rolling flash frequency</h3>
-          <p className="mt-1 text-sm opacity-55">Every event is checked against the preceding one-second window.</p>
-          <div className="mt-5 max-h-72 space-y-3 overflow-auto">
-            {frequency.length ? frequency.map(([time, count]) => <div key={time}><div className="mb-1 flex justify-between text-xs"><span>{time}</span><b className={count > 3 ? "text-red-600" : ""}>{count}/sec</b></div><div className="h-2 rounded-full bg-black/5 dark:bg-white/10"><div className={`h-2 rounded-full ${count > 3 ? "bg-red-500" : "bg-signal"}`} style={{ width: `${Math.min(count / 8 * 100, 100)}%` }} /></div></div>) : <p className="text-sm opacity-55">No frequency data to display.</p>}
-          </div>
+        <div>
+          <h3 className="text-base font-medium">Rolling flash frequency</h3>
+          <p className="mt-1 text-[13px] text-muted">Each flash counted against the second before it.</p>
+          <ul className="rule mt-4 max-h-80 overflow-auto border-t">
+            {frequency.length ? frequency.map(([time, count]) => (
+              <li key={time} className="rule border-b py-3 text-sm">
+                <div className="flex justify-between"><span className="tabular-nums">{time}</span><span className={`tabular-nums ${count > 3 ? "text-red-700 dark:text-red-400" : "text-muted"}`}>{count}/sec</span></div>
+                <div className="mt-2 h-[3px] bg-line/[.08]"><div className={`h-[3px] ${count > 3 ? "bg-red-500" : "bg-ink/60"}`} style={{ width: `${Math.min(count / 8 * 100, 100)}%` }} /></div>
+              </li>
+            )) : <li className="py-3 text-sm text-muted">No frequency data to display.</li>}
+          </ul>
         </div>
       </div>
 
-      <p className="rounded-2xl bg-signal/10 p-4 text-sm leading-6 sm:p-5"><strong>Recommendation:</strong> {report.recommendation}</p>
       <AutoFix file={file} report={report} />
     </section>
   );
