@@ -9,6 +9,7 @@ export function UploadZone({ onFile, disabled }: { onFile: (file: File) => void;
   const [dragging, setDragging] = useState(false);
 
   function accept(file?: File) {
+    if (disabled) return; // drops bypass the disabled button; a second scan would race the first
     if (file && (ACCEPTED.includes(file.type) || file.name.match(/\.(avi|m4v|mkv|mov)$/i))) onFile(file);
   }
 

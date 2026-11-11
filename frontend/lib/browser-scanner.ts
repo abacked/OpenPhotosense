@@ -1,6 +1,7 @@
 import type { AnalysisReport, FlashEvent, RiskLevel } from "./types";
 
-const SAMPLE_FPS = 12;
+// At or above the source frame rate, so per-frame strobes at 25–60 fps are not aliased away.
+const SAMPLE_FPS = 60;
 const STARTUP_GUARD_SECONDS = 0.25;
 const GENERAL_LUMINANCE_DELTA = 0.1;
 const SATURATED_RED_RATIO = 0.8;

@@ -5,7 +5,7 @@ OpenPhotosense performs conservative browser-based screening informed by WCAG 2.
 ## Pipeline
 
 1. The browser decodes the selected video locally.
-2. Frames are sampled at 12 frames per second and resized to 320×180.
+2. Frames are sampled at 60 frames per second and resized to 320×180.
 3. Sampled sRGB channels are linearized and converted to relative luminance.
 4. Adjacent frames produce per-pixel general-flash and saturated-red transition masks.
 5. Non-overlapping opposing transitions are paired into flashes.
@@ -32,7 +32,7 @@ For every flash, the scanner counts flashes occurring during the preceding one-s
 
 ## Known limitations
 
-- The 12 fps sampling rate cannot characterize all high-frequency or very short flashes.
+- The 60 fps sampling rate cannot characterize flashes in footage above 60 fps.
 - Compression artifacts, edits, fades, and camera cuts can produce false results.
 - Fine balanced patterns and precise contiguous-area geometry are not specially exempted.
 - SDR sRGB calculations are used; HDR footage needs dedicated luminance handling.
