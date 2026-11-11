@@ -13,7 +13,7 @@ const nextConfig = {
           unoptimized: true,
         },
       }
-    : {}),
+    : { output: "standalone" }), // frontend/Dockerfile copies .next/standalone
 };
 
 export default nextConfig;
