@@ -46,7 +46,7 @@ Videos are decoded, scanned, corrected, and exported locally. They are never sen
 
 ## How detection works
 
-The browser samples frames into an off-screen canvas, converts sRGB pixels to relative luminance and CIE chromaticity, and measures the frame area involved in general and saturated-red transitions. Opposing transitions are paired so the bright and dark sides form one flash rather than duplicate events.
+The browser decodes every frame with WebCodecs into an off-screen canvas, converts sRGB pixels to relative luminance and CIE chromaticity, and measures the frame area involved in general and saturated-red transitions. Opposing transitions are paired so the bright and dark sides form one flash rather than duplicate events.
 
 Every event is evaluated in a rolling one-second window, preventing bursts from being split across fixed second boundaries. Windows containing more than three flashes are treated as high risk. The overall score also considers red flashes, affected area, high-contrast transitions, event density, and sustained unsafe periods.
 

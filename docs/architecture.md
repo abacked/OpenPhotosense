@@ -1,6 +1,6 @@
 # Architecture
 
-The default website is local-first. The browser decodes the selected file, samples frames into an off-screen canvas, calculates luminance/contrast/red metrics, and builds the report without uploading the file. Auto-fix renders processed frames to a canvas and uses `MediaRecorder` to create a downloadable WebM file.
+The default website is local-first. The browser decodes every frame of the selected file with WebCodecs (via mediabunny) into an off-screen canvas, calculates luminance/contrast/red metrics, and builds the report without uploading the file. Auto-fix renders processed frames to a canvas and uses `MediaRecorder` to create a downloadable WebM file.
 
 Detector functions operate on frame metrics rather than API models. `ScannerConfig` owns policy thresholds, while `VideoScanner` is the OpenCV media adapter and aggregator. This separation supports future adapters for decoded GIF frames, streaming frame iterators, and local browser-extension runtimes without changing the report contract.
 
