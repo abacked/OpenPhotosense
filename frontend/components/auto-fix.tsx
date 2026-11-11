@@ -1,5 +1,6 @@
 "use client";
 
+import { Button, SegmentedControl } from "glisse";
 import { useEffect, useRef, useState } from "react";
 import { generateSaferVideo } from "@/lib/browser-fixer";
 import type { AnalysisReport, FixStrategy } from "@/lib/types";
@@ -38,28 +39,27 @@ export function AutoFix({ file, report }: { file: File; report: AnalysisReport }
 
   function cancel() { controller.current?.abort(); }
 
+  const selected = options.find((option) => option.id === strategy)!;
   return (
     <section>
       <p className="eyebrow">Safer version · Experimental</p>
       <h2 className="mt-4 text-[28px] font-[620] leading-[1.1] tracking-[-.045em]">Generate a safer version</h2>
       <p className="mt-3 text-[15px] leading-[1.65] text-muted">Choose how OpenPhotosense should handle detected risks. Your original file is never overwritten.</p>
       <p className="mt-6 text-sm leading-6"><span className="font-medium">Recommended: {recommendation.label}.</span> <span className="text-muted">{recommendation.reason}</span></p>
-      <div className="rule mt-6 border-t" role="radiogroup" aria-label="Correction method">
-        {options.map((option) => (
-          <button key={option.id} type="button" role="radio" aria-checked={strategy === option.id} disabled={generating} onClick={() => { setStrategy(option.id); setDownloadUrl(""); }} className="rule flex w-full items-start gap-4 border-b py-4 text-left transition-opacity hover:opacity-80 disabled:opacity-50">
-            <span className={`mt-1 grid size-4 shrink-0 place-items-center rounded-full border ${strategy === option.id ? "border-ink" : "border-line/30"}`}>{strategy === option.id && <span className="size-2 rounded-full bg-ink" />}</span>
-            <span className="min-w-0 flex-1">
-              <span className="flex flex-wrap items-baseline justify-between gap-x-3"><strong className="text-sm font-medium">{option.title}</strong><span className="text-[11px] uppercase tracking-[.18em] text-muted">{option.id === recommendation.strategy ? "Recommended" : option.note}</span></span>
-              <span className="mt-1 block text-[13px] leading-5 text-muted">{option.copy}</span>
-            </span>
-          </button>
-        ))}
+      <div className={`mt-6 ${generating ? "pointer-events-none opacity-50" : ""}`}>
+        <SegmentedControl
+          aria-label="Correction method"
+          items={options.map((option) => ({ value: option.id, label: option.title.split(" ")[0] }))}
+          value={strategy}
+          onValueChange={(value) => { setStrategy(value as FixStrategy); setDownloadUrl(""); }}
+        />
       </div>
+      <p className="mt-4 text-sm leading-6"><span className="font-medium">{selected.title}</span><span className="ml-2 text-[11px] uppercase tracking-[.18em] text-muted">{selected.id === recommendation.strategy ? "Recommended" : selected.note}</span><br /><span className="text-muted">{selected.copy}</span></p>
       {generating && (
         <div className="mt-6" aria-live="polite">
           <div className="flex items-baseline justify-between gap-4 text-sm"><span>Generating safer video</span><span className="tabular-nums text-muted">{progress}%</span></div>
-          <div className="mt-3 h-px bg-line/[.12]"><div className="h-px bg-ink transition-all" style={{ width: `${progress}%` }} /></div>
-          <button type="button" onClick={cancel} className="link mt-3 text-[13px] text-muted">Cancel generation</button>
+          <div className="mt-3 h-1 overflow-hidden rounded-full bg-line/[.1]"><div className="h-1 rounded-full bg-[var(--lg-fill)] transition-all" style={{ width: `${progress}%` }} /></div>
+          <Button onClick={cancel} className="mt-4">Cancel generation</Button>
         </div>
       )}
       {error && <p role="alert" className="mt-5 text-sm text-red-700 dark:text-red-400">{error}</p>}
@@ -67,7 +67,9 @@ export function AutoFix({ file, report }: { file: File; report: AnalysisReport }
         <div className="mt-8"><VideoPreview src={downloadUrl} events={strategy === "remove" ? [] : report.events} duration={report.duration_seconds} title={`Safer video preview · ${format.toUpperCase()}`} description={strategy === "remove" ? "Risky intervals were removed; drag anywhere to review the new timeline." : "Corrected moments remain highlighted. Drag anywhere to review the result."} /></div>
       )}
       <div className="mt-6 flex flex-col items-start gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-5">
-        {downloadUrl ? <a className="button" href={downloadUrl} download={`${file.name.replace(/\.[^.]+$/, "")}-${strategy}-safer.${format}`}>Download {format.toUpperCase()}</a> : <button type="button" disabled={generating} onClick={generate} className="button">Generate safer version</button>}
+        {downloadUrl
+          ? <a className="lg-glass lg-button" data-variant="filled" href={downloadUrl} download={`${file.name.replace(/\.[^.]+$/, "")}-${strategy}-safer.${format}`}>Download {format.toUpperCase()}</a>
+          : !generating && <Button variant="filled" onClick={generate}>Generate safer version</Button>}
         {downloadUrl && format === "webm" && <p className="text-[13px] text-amber-700 dark:text-amber-400">This browser cannot record MP4 directly, so it used WebM as a fallback.</p>}
         <p className="text-[13px] text-muted">Generated locally. Keep this tab open and always review before publishing.</p>
       </div>

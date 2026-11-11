@@ -1,5 +1,6 @@
 "use client";
 
+import { Glass } from "glisse";
 import { useEffect, useState } from "react";
 import { Results } from "@/components/results";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -37,15 +38,17 @@ export default function Home() {
   const busy = uploading;
   return (
     <main className="min-h-screen">
-      <nav className="flex items-center justify-between gap-4 px-5 py-6 sm:px-9 sm:py-8">
-        <a href="#" className="text-sm font-[650] uppercase tracking-[.28em] sm:text-base">OpenPhotosense</a>
-        <div className="flex items-center gap-6 text-[13px]">
-          <a href="https://github.com/abacked/OpenPhotosense" target="_blank" rel="noreferrer" className="hidden hover:opacity-60 sm:block">Source</a>
-          <ThemeToggle />
-        </div>
-      </nav>
+      <div className="sticky top-3 z-20 px-3 sm:top-5 sm:px-6">
+        <Glass className="mx-auto flex max-w-[960px] items-center justify-between gap-3 rounded-full py-2 pl-4 pr-2 [--lg-blur:14px] sm:pl-5">
+          <a href="#" className="min-w-0 truncate text-[11px] font-[650] uppercase tracking-[.16em] sm:text-sm sm:tracking-[.26em]">OpenPhotosense</a>
+          <div className="flex items-center gap-5 text-[13px]">
+            <a href="https://github.com/abacked/OpenPhotosense" target="_blank" rel="noreferrer" className="hidden hover:opacity-60 sm:block">Source</a>
+            <ThemeToggle />
+          </div>
+        </Glass>
+      </div>
 
-      <div className="mx-auto max-w-[720px] px-5 pb-24 pt-10 sm:px-8 sm:pt-16">
+      <div className="mx-auto max-w-[720px] px-5 pb-24 pt-14 sm:px-8 sm:pt-24">
         <header>
           <p className="eyebrow">Flash safety scanner</p>
           <h1 className="mt-4 text-[34px] font-[620] leading-[1.05] tracking-[-.055em] text-balance sm:text-[44px]">Check every flash before they see it.</h1>
@@ -55,31 +58,31 @@ export default function Home() {
         <section className="mt-12">
           <UploadZone onFile={upload} disabled={busy} />
           {busy && (
-            <div className="mt-6" aria-live="polite">
+            <Glass className="panel mt-4" aria-live="polite">
               <div className="flex items-baseline justify-between gap-4 text-sm">
                 <span className="min-w-0 truncate">Scanning {filename}</span>
                 <span className="shrink-0 tabular-nums text-muted">{progress}%</span>
               </div>
-              <div className="mt-3 h-px bg-line/[.12]"><div className="h-px bg-ink transition-all duration-500" style={{ width: `${progress}%` }} /></div>
+              <div className="mt-3 h-1 overflow-hidden rounded-full bg-line/[.1]"><div className="h-1 rounded-full bg-[var(--lg-fill)] transition-all duration-500" style={{ width: `${progress}%` }} /></div>
               <p className="mt-3 text-[13px] text-muted">Keep this tab open while frames are analyzed.</p>
-            </div>
+            </Glass>
           )}
           {error && <p role="alert" className="mt-6 text-sm text-red-700 dark:text-red-400">{error}</p>}
           {report && videoFile && videoUrl && <Results report={report} file={videoFile} videoUrl={videoUrl} />}
         </section>
 
-        <section className="mt-24">
+        <Glass className="panel mt-20">
           <p className="eyebrow">How it works</p>
-          <ul className="rule mt-5 border-t">
+          <ul className="mt-3">
             {steps.map(([n, title, copy]) => (
-              <li key={n} className="rule grid gap-1 border-b py-4 text-sm sm:grid-cols-[3rem_11rem_1fr] sm:gap-4">
+              <li key={n} className="rule grid gap-1 border-b py-4 last:border-b-0 text-sm sm:grid-cols-[3rem_11rem_1fr] sm:gap-4">
                 <span className="font-medium tabular-nums">{n}</span>
                 <span className="font-medium">{title}</span>
                 <span className="text-muted">{copy}</span>
               </li>
             ))}
           </ul>
-        </section>
+        </Glass>
 
         <footer className="mt-16 max-w-[34rem] text-[13px] leading-6 text-muted">Processing stays in your browser. OpenPhotosense is an accessibility screening aid, not a medical diagnostic tool or a guarantee of WCAG conformance.</footer>
       </div>

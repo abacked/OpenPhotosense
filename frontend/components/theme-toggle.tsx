@@ -1,22 +1,38 @@
 "use client";
 
-import { useEffect } from "react";
+import { SegmentedControl } from "glisse";
+import { useEffect, useState } from "react";
+
+type Theme = "light" | "dark";
+
+function apply(theme: Theme) {
+  document.documentElement.classList.toggle("dark", theme === "dark");
+  document.documentElement.dataset.theme = theme; // glisse reads data-theme
+}
 
 export function ThemeToggle() {
+  const [theme, setTheme] = useState<Theme | null>(null);
+
   useEffect(() => {
-    const preferred = localStorage.theme === "dark" || (!localStorage.theme && matchMedia("(prefers-color-scheme: dark)").matches);
-    document.documentElement.classList.toggle("dark", preferred);
+    const preferred: Theme = localStorage.theme === "dark" || (!localStorage.theme && matchMedia("(prefers-color-scheme: dark)").matches) ? "dark" : "light";
+    apply(preferred);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage only exists after hydration
+    setTheme(preferred);
   }, []);
 
-  function select(next: "light" | "dark") {
-    localStorage.setItem("theme", next);
-    document.documentElement.classList.toggle("dark", next === "dark");
+  function select(next: string) {
+    const value = next as Theme;
+    localStorage.setItem("theme", value);
+    apply(value);
+    setTheme(value);
   }
 
   return (
-    <div className="flex gap-3 text-[13px]" aria-label="Color theme">
-      <button type="button" onClick={() => select("light")} className="underline decoration-1 underline-offset-4 dark:text-muted dark:no-underline dark:hover:text-ink">Light</button>
-      <button type="button" onClick={() => select("dark")} className="text-muted hover:text-ink dark:text-ink dark:underline dark:decoration-1 dark:underline-offset-4">Dark</button>
-    </div>
+    <SegmentedControl
+      aria-label="Color theme"
+      items={[{ value: "light", label: "Light" }, { value: "dark", label: "Dark" }]}
+      value={theme}
+      onValueChange={select}
+    />
   );
 }

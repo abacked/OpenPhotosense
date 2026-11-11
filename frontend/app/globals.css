@@ -2,16 +2,36 @@
 @tailwind components;
 @tailwind utilities;
 
-:root { color-scheme: light; --paper: 246 246 246; --ink: 41 45 47; --muted: 105 110 116; --line: 41 45 47; }
-.dark { color-scheme: dark; --paper: 20 22 23; --ink: 232 233 234; --muted: 154 160 166; --line: 232 233 234; }
-html, body { overflow-x: hidden; }
+:root {
+  color-scheme: light;
+  --paper: 244 245 247; --ink: 29 31 33; --muted: 92 98 106; --line: 29 31 33;
+  --glow-a: 52 211 153; --glow-b: 96 165 250; --glow-c: 251 176 120;
+  --lg-fill: #0f7d57; /* 5:1 against white labels */
+}
+.panel { --lg-glass: rgb(255 255 255 / .42); }
+.dark .panel { --lg-glass: rgb(40 40 44 / .45); }
+.dark {
+  color-scheme: dark;
+  --paper: 14 16 18; --ink: 236 237 238; --muted: 160 166 172; --line: 236 237 238;
+  --glow-a: 16 150 105; --glow-b: 70 90 200; --glow-c: 150 70 130;
+  --lg-fill: #1fb47e;
+}
+html, body { overflow-x: clip; } /* hidden would make body a scroll box and break the sticky nav */
+body {
+  background:
+    radial-gradient(circle at center, rgb(var(--line) / .07) 1px, transparent 1.5px) 0 0 / 22px 22px,
+    radial-gradient(52rem 36rem at 8% -6%, rgb(var(--glow-a) / .38), transparent 62%),
+    radial-gradient(46rem 34rem at 96% 8%, rgb(var(--glow-b) / .34), transparent 62%),
+    radial-gradient(56rem 38rem at 50% 108%, rgb(var(--glow-c) / .3), transparent 62%),
+    rgb(var(--paper));
+  background-attachment: fixed;
+}
 * { scrollbar-width: thin; scrollbar-color: rgb(var(--line) / .18) transparent; }
 ::selection { background: rgb(var(--ink)); color: rgb(var(--paper)); }
 
 .eyebrow { @apply text-[11px] font-semibold uppercase tracking-[.22em] text-muted; }
-.link { @apply underline decoration-1 underline-offset-4 transition-opacity hover:opacity-60; }
-.button { @apply rounded-full bg-ink px-5 py-2.5 text-sm font-medium text-paper transition-opacity hover:opacity-80 disabled:opacity-40; }
-.rule { @apply border-line/[.12]; }
+.panel { @apply rounded-[28px] p-5 sm:p-8; }
+.rule { @apply border-line/[.1]; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition-duration: .01ms !important; scroll-behavior: auto !important; }
