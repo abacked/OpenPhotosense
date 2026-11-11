@@ -6,6 +6,18 @@ Drop in a video and it checks for rapid luminance changes, red-dominant flashes,
 
 > **Important:** OpenPhotosense is an accessibility screening aid, **not a medical diagnostic tool**, certification service, or guarantee of WCAG conformance. Automated results can include false positives and false negatives. Human review remains necessary.
 
+**[Try it live](https://abacked.github.io/OpenPhotosense/)**
+
+![OpenPhotosense start screen with a drop zone for choosing a video](docs/screenshots/start.jpg)
+
+## Screenshots
+
+| Risk report | Flagged moments |
+| --- | --- |
+| ![Accessibility report showing a high risk score, flash events, red flashes, contrast changes and frames scanned](docs/screenshots/report.jpg) | ![Flagged timestamps with affected frame area, and the rolling flash frequency per one-second window](docs/screenshots/timeline.jpg) |
+
+![Auto-fix panel recommending smoothing, with dim and remove as alternatives](docs/screenshots/auto-fix.jpg)
+
 ## No installation or upload required
 
 The complete workflow runs inside the browser:
