@@ -9,7 +9,7 @@ export function VideoPreview({
   src,
   events,
   duration,
-  title = "Review flagged moments",
+  title = "",
   description = "Click or drag anywhere on the timeline to scrub through the video.",
 }: {
   src: string;
@@ -37,12 +37,12 @@ export function VideoPreview({
 
   return (
     <div>
-      <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-end">
+      <div className="flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
         <div className="min-w-0">
-          <h3 className="text-base font-medium">{title}</h3>
-          <p className="mt-1 text-[13px] text-muted">{description}</p>
+          {title && <h3 className="text-[17px] font-semibold">{title}</h3>}
+          <p className="text-[13px] text-muted">{description}</p>
         </div>
-        <div className="flex items-center gap-4 text-[12px] text-muted">
+        <div className="flex items-center gap-4 text-[13px] text-muted">
           <span className="flex items-center gap-1.5"><i className="size-2 rounded-full bg-amber-400" /> Flash</span>
           <span className="flex items-center gap-1.5"><i className="size-2 rounded-full bg-red-500" /> Red flash</span>
         </div>
@@ -55,26 +55,26 @@ export function VideoPreview({
         preload="metadata"
         onLoadedMetadata={(event) => { if (Number.isFinite(event.currentTarget.duration)) setMediaDuration(event.currentTarget.duration); }}
         onTimeUpdate={(event) => setCurrentTime(event.currentTarget.currentTime)}
-        className="mt-4 aspect-video w-full rounded-md bg-black object-contain"
+        className="mt-4 aspect-video w-full rounded-2xl bg-black object-contain"
       >
         Your browser does not support video playback.
       </video>
 
       <div className="mt-3" aria-label="Video risk timeline">
         <div className="relative h-10">
-          <div className="absolute inset-x-0 top-[18px] h-1 overflow-hidden rounded-full bg-line/[.12]">
+          <div className="absolute inset-x-0 top-[18px] h-1 overflow-hidden rounded-full bg-fill/20">
             {markers.map(({ event, index, left }) => {
               const width = Math.max(FLAG_WINDOW_SECONDS / safeDuration * 100, 0.45);
               return <span key={`range-${index}`} className={`absolute inset-y-0 ${event.is_red_flash ? "bg-red-500" : "bg-amber-400"}`} style={{ left: `${left}%`, width: `${width}%` }} />;
             })}
-            <span className="absolute inset-y-0 left-0 bg-ink/25" style={{ width: `${Math.min(currentTime / safeDuration * 100, 100)}%` }} />
+            <span className="absolute inset-y-0 left-0 bg-accent/40" style={{ width: `${Math.min(currentTime / safeDuration * 100, 100)}%` }} />
           </div>
           {markers.map(({ event, index, left }) => (
             <span
               key={`${event.timestamp_seconds}-${index}`}
               title={`${event.is_red_flash ? "Red flash" : "Flash"} at ${event.timestamp}`}
               aria-hidden="true"
-              className={`pointer-events-none absolute top-[14px] size-3 -translate-x-1/2 rounded-full ring-2 ring-paper ${event.is_red_flash ? "bg-red-500" : "bg-amber-400"}`}
+              className={`pointer-events-none absolute top-[14px] size-3 -translate-x-1/2 rounded-full ring-2 ring-card ${event.is_red_flash ? "bg-red-500" : "bg-amber-400"}`}
               style={{ left: `${left}%` }}
             />
           ))}
@@ -86,13 +86,13 @@ export function VideoPreview({
             value={Math.min(currentTime, safeDuration)}
             onChange={(event) => scrub(Number(event.currentTarget.value))}
             aria-label="Video position"
-            className="absolute inset-0 z-10 h-10 w-full cursor-ew-resize appearance-none bg-transparent [&::-moz-range-thumb]:size-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-paper [&::-moz-range-thumb]:bg-ink [&::-moz-range-track]:bg-transparent [&::-webkit-slider-runnable-track]:h-10 [&::-webkit-slider-runnable-track]:bg-transparent [&::-webkit-slider-thumb]:mt-3 [&::-webkit-slider-thumb]:size-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-paper [&::-webkit-slider-thumb]:bg-ink"
+            className="absolute inset-0 z-10 h-10 w-full cursor-ew-resize appearance-none bg-transparent [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:w-7 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:shadow-[0_1px_4px_rgba(0,0,0,.25),0_0_0_.5px_rgba(0,0,0,.08)] [&::-moz-range-track]:bg-transparent [&::-webkit-slider-runnable-track]:h-10 [&::-webkit-slider-runnable-track]:bg-transparent [&::-webkit-slider-thumb]:mt-2.5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-7 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-[0_1px_4px_rgba(0,0,0,.25),0_0_0_.5px_rgba(0,0,0,.08)]"
           />
         </div>
         <div className="flex justify-between text-[11px] tabular-nums text-muted"><span>{formatTime(currentTime)}</span><span>{formatTime(safeDuration)}</span></div>
       </div>
 
-      {events.length === 0 && <p className="mt-3 text-sm text-emerald-700 dark:text-emerald-400">No flagged moments were found in this video.</p>}
+      {events.length === 0 && <p className="mt-3 text-[15px] text-ok">No flagged moments were found in this video.</p>}
     </div>
   );
 }

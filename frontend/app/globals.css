@@ -2,36 +2,26 @@
 @tailwind components;
 @tailwind utilities;
 
+/* iOS system colours: grouped background, secondary grouped surface, labels, separator. */
 :root {
   color-scheme: light;
-  --paper: 244 245 247; --ink: 29 31 33; --muted: 92 98 106; --line: 29 31 33;
-  --glow-a: 52 211 153; --glow-b: 96 165 250; --glow-c: 251 176 120;
-  --lg-fill: #0f7d57; /* 5:1 against white labels */
+  --paper: 242 242 247; --card: 255 255 255; --fill: 118 118 128; --ink: 0 0 0;
+  --muted: 60 60 67 / .6; --line: 60 60 67 / .29;
+  --red: 215 0 21; --orange: 201 52 0; --green: 36 138 61; --blue: 0 122 255;
 }
-.panel { --lg-glass: rgb(255 255 255 / .42); }
-.dark .panel { --lg-glass: rgb(40 40 44 / .45); }
 .dark {
   color-scheme: dark;
-  --paper: 14 16 18; --ink: 236 237 238; --muted: 160 166 172; --line: 236 237 238;
-  --glow-a: 16 150 105; --glow-b: 70 90 200; --glow-c: 150 70 130;
-  --lg-fill: #1fb47e;
+  --paper: 0 0 0; --card: 28 28 30; --fill: 118 118 128; --ink: 255 255 255;
+  --muted: 235 235 245 / .6; --line: 84 84 88 / .65;
+  --red: 255 69 58; --orange: 255 159 10; --green: 48 209 88; --blue: 10 132 255;
 }
 html, body { overflow-x: clip; } /* hidden would make body a scroll box and break the sticky nav */
-body {
-  background:
-    radial-gradient(circle at center, rgb(var(--line) / .07) 1px, transparent 1.5px) 0 0 / 22px 22px,
-    radial-gradient(52rem 36rem at 8% -6%, rgb(var(--glow-a) / .38), transparent 62%),
-    radial-gradient(46rem 34rem at 96% 8%, rgb(var(--glow-b) / .34), transparent 62%),
-    radial-gradient(56rem 38rem at 50% 108%, rgb(var(--glow-c) / .3), transparent 62%),
-    rgb(var(--paper));
-  background-attachment: fixed;
-}
-* { scrollbar-width: thin; scrollbar-color: rgb(var(--line) / .18) transparent; }
-::selection { background: rgb(var(--ink)); color: rgb(var(--paper)); }
+* { scrollbar-width: thin; scrollbar-color: rgb(var(--fill) / .4) transparent; }
+::selection { background: rgb(var(--blue) / .3); }
 
-.eyebrow { @apply text-[11px] font-semibold uppercase tracking-[.22em] text-muted; }
-.panel { @apply rounded-[28px] p-5 sm:p-8; }
-.rule { @apply border-line/[.1]; }
+.card { @apply rounded-[26px] bg-card; }
+.section-title { @apply mb-2 px-4 text-[13px] uppercase tracking-[.02em] text-muted; }
+.row { @apply border-b border-line px-4 py-3 last:border-b-0 sm:px-5; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition-duration: .01ms !important; scroll-behavior: auto !important; }

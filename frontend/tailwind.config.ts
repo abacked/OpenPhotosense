@@ -9,12 +9,19 @@ const config: Config = {
     extend: {
       colors: {
         paper: token("paper"),
+        card: token("card"),
+        fill: token("fill"),
         ink: token("ink"),
-        muted: token("muted"),
-        line: token("line"),
+        danger: token("red"),
+        warn: token("orange"),
+        ok: token("green"),
+        accent: token("blue"),
+        // Already carry their own alpha, as Apple's label and separator colours do.
+        muted: "rgb(var(--muted))",
+        line: "rgb(var(--line))",
       },
       fontFamily: {
-        sans: ["var(--font-inter)", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "sans-serif"],
+        sans: ["-apple-system", "BlinkMacSystemFont", "SF Pro Text", "var(--font-inter)", "system-ui", "sans-serif"],
       },
     },
   },

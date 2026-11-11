@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Glass } from "glisse";
+import { Button } from "glisse";
 import { DragEvent, useRef, useState } from "react";
 
 const ACCEPTED = ["video/mp4", "video/webm", "video/quicktime", "video/x-matroska"];
@@ -21,20 +21,20 @@ export function UploadZone({ onFile, disabled }: { onFile: (file: File) => void;
   }
 
   return (
-    <Glass
+    <div
       onDragOver={(event) => { event.preventDefault(); setDragging(true); }}
       onDragLeave={() => setDragging(false)}
       onDrop={drop}
-      className={`panel flex flex-col gap-5 transition-[outline-color] sm:flex-row sm:items-center sm:justify-between ${dragging ? "outline outline-2 outline-offset-4 outline-[var(--lg-fill)]" : "outline-transparent"}`}
+      className={`card flex flex-col gap-4 p-5 transition-shadow sm:flex-row sm:items-center sm:justify-between sm:p-6 ${dragging ? "ring-2 ring-accent" : ""}`}
     >
       <div className="min-w-0">
-        <p className="text-lg font-medium tracking-[-.02em]">{dragging ? "Release to scan" : "Drop a video to scan"}</p>
-        <p className="mt-1 text-sm text-muted">MP4, MOV or WebM up to 500 MB. It never leaves this device.</p>
+        <p className="text-[17px] font-semibold">{dragging ? "Release to scan" : "Drop a video to scan"}</p>
+        <p className="mt-0.5 text-[15px] text-muted">MP4, MOV or WebM up to 500 MB. It never leaves this device.</p>
       </div>
       <Button variant="filled" disabled={disabled} onClick={() => input.current?.click()} className="shrink-0 self-start sm:self-auto">
-        Choose video
+        Choose Video
       </Button>
       <input ref={input} type="file" accept="video/*,.mkv" hidden onChange={(event) => accept(event.target.files?.[0])} />
-    </Glass>
+    </div>
   );
 }
