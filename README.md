@@ -46,9 +46,9 @@ Videos are decoded, scanned, corrected, and exported locally. They are never sen
 
 ## How detection works
 
-The browser decodes every frame with WebCodecs into an off-screen canvas, converts sRGB pixels to relative luminance and CIE chromaticity, and measures the frame area involved in general and saturated-red transitions. Opposing transitions are paired so the bright and dark sides form one flash rather than duplicate events.
+The browser decodes every frame with WebCodecs into an off-screen canvas and converts sRGB pixels to relative luminance and CIE chromaticity. Each pixel tracks its own bright and dark extremes, so a change counts once it moves 10% from the last extreme, however many frames it takes. A frame registers a transition only when enough area changes in the same direction at once, so camera motion cancels out instead of looking like flashing. Two opposing transitions form one flash.
 
-Every event is evaluated in a rolling one-second window, preventing bursts from being split across fixed second boundaries. Windows containing more than three flashes are treated as high risk. The overall score also considers red flashes, affected area, high-contrast transitions, event density, and sustained unsafe periods.
+Every transition is evaluated in a rolling one-second window, preventing bursts from being split across fixed second boundaries. More than three flashes in any second is high risk; two or more, or any saturated-red flash, is medium. The score is the peak flash rate, scaled so the three-flash limit is 75.
 
 Auto-fix recommendations use the same report:
 
